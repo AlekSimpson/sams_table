@@ -1,0 +1,26 @@
+# Go
+backend/server
+backend/tmp/
+*.exe
+*.test
+*.out
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Env
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Uploads
+uploads/
+backend/uploads/
+
+# Docker
+*.log

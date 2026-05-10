@@ -1,0 +1,130 @@
+:root {
+  --bg:       #f6f1e9;
+  --surface:  #efe9de;
+  --surface2: #e8e0d2;
+  --rule:     #d6cab8;
+  --rule-lt:  #e4dbd0;
+
+  --ink:      #1a1510;
+  --ink2:     #6b5f50;
+  --ink3:     #a8998a;
+  --ink4:     #c8bdb0;
+
+  --red:      #7a1a1a;
+  --red-lt:   #f5eaea;
+  --gold:     #8a6c20;
+  --gold-lt:  #f5f0e4;
+  --teal:     #1a5a5a;
+  --teal-lt:  #e4f0f0;
+  --green:    #2a5a2a;
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'Outfit', system-ui, -apple-system, sans-serif;
+
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 10px;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 2px; }
+
+input, textarea, button { font-family: var(--font-body); }
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+/* ── Shared button styles ── */
+.btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 7px 16px;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.btn--primary {
+  background: var(--red);
+  color: #fff;
+  border: 1px solid var(--red);
+}
+.btn--primary:hover { opacity: 0.88; }
+
+.btn--secondary {
+  background: var(--surface);
+  color: var(--ink2);
+  border: 1px solid var(--rule);
+}
+.btn--secondary:hover { background: var(--surface2); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink2);
+  border: 1px solid var(--rule);
+}
+.btn--ghost:hover { background: var(--surface2); color: var(--ink); }
+
+.btn--danger {
+  background: transparent;
+  color: var(--ink3);
+  border: 1px solid var(--rule-lt);
+  font-size: 11px;
+  padding: 3px 8px;
+}
+.btn--danger:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+.btn--full { width: 100%; }
+
+.btn--sm {
+  font-size: 11px;
+  padding: 5px 12px;
+}
+
+/* ── Section label ── */
+.section-label {
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+/* ── Scaffold placeholder ── */
+.scaffold-placeholder {
+  padding: 20px;
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius-md);
+  color: var(--ink4);
+  font-size: 12px;
+  text-align: center;
+  font-style: italic;
+}
