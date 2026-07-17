@@ -53,6 +53,25 @@ type ClassSkill struct {
 	Allowed_Class_Keys []string `json:"allowed_classes" db:"allowed_classes"`
 }
 
+type Attack struct {
+	Id     uuid.UUID `json:"id" db:"id"`
+	Name   string    `json:"name" db:"name"`
+	Range  int       `json:"range" db:"range"`
+	DC     int       `json:"dc" db:"dc"`
+	Damage int       `json:"damage" db:"damage"`
+}
+
+type Action struct {
+	Id          uuid.UUID `json:"id" db:"id"`
+	Name        string    `json:"name" db:"name"`
+	Description string    `json:"description" db:"description"`
+}
+
+type Spell struct {
+	Id   uuid.UUID `json:"id" db:"id"`
+	Name string    `json:"name" db:"name"`
+}
+
 type Class struct {
 	Key                         string             `json:"key" db:"key"`
 	Name                        string             `json:"name" db:"name"`
@@ -103,6 +122,7 @@ type Character struct {
 	Stats               CharacterStats `json:"stats" db:"stats"`
 	Skill_Proficiencies []string       `json:"skill_profs" db:"skill_profs"`
 	Conditions          []string       `json:"conditions" db:"conditions"`
+	Attacks             []Attack       `json:"attacks" db:"attacks"`
 	CreatedAt           time.Time      `json:"created_at" db:"created_at"`
 }
 

@@ -13,22 +13,80 @@ const character_cols = `id, campaign_id, player_id, name, class, race, level,
 	max_hp, current_hp, armor_class, speed, stats, skill_profs, conditions, created_at`
 
 func scan_character(row interface{ Scan(...any) error }) (*models.Character, error) {
-	c := &models.Character{}
+	character := &models.Character{}
 	err := row.Scan(
-		&c.ID, &c.Campaign_ID, &c.Player_ID, &c.Name, &c.Class, &c.Race, &c.Level,
-		&c.MaxHP, &c.Current_HP, &c.Armor_Class, &c.Speed,
-		&c.Stats, &c.Skill_Proficiencies, &c.Conditions, &c.CreatedAt,
+		&character.ID, &character.Campaign_ID, &character.Player_ID, &character.Name, &character.Class, &character.Race, &character.Level,
+		&character.MaxHP, &character.Current_HP, &character.Armor_Class, &character.Speed,
+		&character.Stats, &character.Skill_Proficiencies, &character.Conditions, &character.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return c, nil
+	return character, nil
+}
+
+func fetch_character_attacks(context context.Context, pool *pgxpool.Pool, character *models.Character) error {
+	rows, err := pool.Query(context, `SELECT `+attack_cols+` FROM attacks WHERE character_id = $1`, character.ID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		action := models.Attack{}
+		if err := rows.Scan(&action.Id, &action.Name, &action.Range, &action.DC, &action.Damage); err != nil {
+			return err
+		}
+		character.Attacks = append(character.Attacks, action)
+	}
+	return rows.Err()
 }
 
 func List_Characters_By_Campaign(ctx context.Context, database_pool *pgxpool.Pool, campaign_ID uuid.UUID) ([]models.Character, error) {
 	rows, err := database_pool.Query(ctx,
 		"SELECT "+character_cols+" FROM characters WHERE campaign_id = $1",
 		campaign_ID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var characters []models.Character
+	for rows.Next() {
+		character := models.Character{}
+		if err := rows.Scan(
+			&character.ID, &character.Campaign_ID, &character.Player_ID, &character.Name, &character.Class, &character.Race, &character.Level,
+			&character.MaxHP, &character.Current_HP, &character.Armor_Class, &character.Speed,
+			&character.Stats, &character.Skill_Proficiencies, &character.Conditions, &character.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		if err := fetch_character_attacks(ctx, database_pool, &character); err != nil {
+			return nil, err
+		}
+		characters = append(characters, character)
+	}
+	return characters, rows.Err()
+}
+
+func Get_Character(context context.Context, database_pool *pgxpool.Pool, id uuid.UUID) (*models.Character, error) {
+	character, err := scan_character(database_pool.QueryRow(context,
+		"SELECT "+character_cols+" FROM characters WHERE id = $1",
+		id,
+	))
+	if err != nil {
+		return nil, err
+	}
+	if err := fetch_character_attacks(context, database_pool, character); err != nil {
+		return nil, err
+	}
+	return character, nil
+}
+
+func Get_Characters_By_User(ctx context.Context, database_pool *pgxpool.Pool, user_id uuid.UUID) ([]models.Character, error) {
+	rows, err := database_pool.Query(ctx,
+		"SELECT "+character_cols+" FROM characters WHERE player_id = $1",
+		user_id,
 	)
 	if err != nil {
 		return nil, err
@@ -45,42 +103,11 @@ func List_Characters_By_Campaign(ctx context.Context, database_pool *pgxpool.Poo
 		); err != nil {
 			return nil, err
 		}
-		characters = append(characters, c)
-	}
-	return characters, rows.Err()
-}
-
-func Get_Character(ctx context.Context, database_pool *pgxpool.Pool, id uuid.UUID) (*models.Character, error) {
-	return scan_character(database_pool.QueryRow(ctx,
-		"SELECT "+character_cols+" FROM characters WHERE id = $1",
-		id,
-	))
-}
-
-func Get_Characters_By_User(context context.Context, database_pool *pgxpool.Pool, user_id uuid.UUID) ([]models.Character, error) {
-	rows, err := database_pool.Query(context,
-		"select "+character_cols+" from characters where player_id = $1",
-		user_id,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var characters []models.Character
-	for rows.Next() {
-		character := models.Character{}
-		if err := rows.Scan(
-			&character.ID, &character.Campaign_ID, &character.Player_ID, &character.Name, &character.Class, &character.Race, &character.Level,
-			&character.MaxHP, &character.Current_HP, &character.Armor_Class, &character.Speed,
-			&character.Stats, &character.Skill_Proficiencies, &character.Conditions, &character.CreatedAt,
-		); err != nil {
+		if err := fetch_character_attacks(ctx, database_pool, &c); err != nil {
 			return nil, err
 		}
-		characters = append(characters, character)
+		characters = append(characters, c)
 	}
-
 	return characters, rows.Err()
 }
 

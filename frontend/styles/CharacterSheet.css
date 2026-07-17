@@ -291,7 +291,14 @@
   font-weight: 300;
   line-height: 1;
   transition: color 0.3s;
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 80px;
+  -moz-appearance: textfield;
 }
+.cs__hp-num::-webkit-inner-spin-button,
+.cs__hp-num::-webkit-outer-spin-button { -webkit-appearance: none; }
 
 .cs__hp-sep {
   font-size: 18px;

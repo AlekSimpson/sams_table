@@ -57,6 +57,8 @@ func main() {
 	campaign_handler := handlers.New_Campaign_Handler(pool, webtoken_service)
 	character_handler := handlers.New_Character_Handler(pool, webtoken_service)
 	map_handler := handlers.New_Map_Handler(pool, webtoken_service)
+	attack_handler := handlers.New_AttackHandler(pool, webtoken_service)
+	action_handler := handlers.New_ActionHandler(pool, webtoken_service)
 	asset_handler := handlers.New_Asset_Handler(pool, webtoken_service)
 	websocket_handler := handlers.New_WS_Handler(websocket_hub, webtoken_service, pool)
 	rules_handler := handlers.New_Rules_Handler(pool)
@@ -90,6 +92,12 @@ func main() {
 	// Protected routes
 	router.Group(func(chi_router chi.Router) {
 		chi_router.Use(auth.Middleware_Check_Token(webtoken_service))
+
+		chi_router.Get("/api/actions/list", action_handler.List_Actions)
+		chi_router.Get("/api/actions/get/{id}", action_handler.Get_Action)
+
+		chi_router.Get("/api/attacks/{id}", attack_handler.Get_Attack)
+		chi_router.Get("/api/attacks/list", attack_handler.List_Attacks)
 
 		chi_router.Get("/api/campaigns", campaign_handler.List)
 		chi_router.Post("/api/campaigns", campaign_handler.Create)
