@@ -11,9 +11,11 @@ interface MapSceneProps {
   /** 'build' enables placement interactions (DM only); 'view' is read-only. */
   mode: 'view' | 'build'
   map_id: string
+  /** Called after a tile placement has actually persisted successfully (build mode only). */
+  on_tile_placed?: () => void
 }
 
-export default function MapScene({ mode, map_id }: MapSceneProps) {
+export default function MapScene({ mode, map_id, on_tile_placed }: MapSceneProps) {
   const { tiles_loading, tiles_error, selected_asset, load_map, place_map_tile } = map_viewmodel()
   const [is_dragging_token, set_is_dragging_token] = useState(false)
 
@@ -23,10 +25,10 @@ export default function MapScene({ mode, map_id }: MapSceneProps) {
 
   // Builder click-to-place: the invisible ground plane's intersection point maps to grid
   // coordinates as [grid_x, grid_z] (ground plane), placing at elevation grid_y = 0.
-  const handle_grid_click = (event: ThreeEvent<MouseEvent>) => {
+  const handle_grid_click = async (event: ThreeEvent<MouseEvent>) => {
     if (mode !== 'build' || !selected_asset) return
     event.stopPropagation()
-    place_map_tile(map_id, {
+    const did_placement_succeed = await place_map_tile(map_id, {
       asset_id: selected_asset.id,
       asset_source: selected_asset.source,
       grid_x: Math.round(event.point.x),
@@ -34,6 +36,7 @@ export default function MapScene({ mode, map_id }: MapSceneProps) {
       grid_z: Math.round(event.point.z),
       rotation_y: 0,
     })
+    if (did_placement_succeed) on_tile_placed?.()
   }
 
   if (tiles_loading) {

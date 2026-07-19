@@ -67,15 +67,11 @@ test('DM can run a full session: campaign, map, session, tile, combat controls',
   await floor_tile_button.click()
   await expect(floor_tile_button).toHaveClass(/button--secondary/)
 
-  // NOTE on observability: the 3D scene is a Three.js WebGL canvas with no DOM-visible
-  // confirmation of a successful placement (no tile counter, toast, or other rendered
-  // signal exists anywhere in this codebase - verified by reading map_view.tsx,
-  // tile_renderer.tsx, and dm_map_panel.tsx). The mock backend also never issues a real
-  // network request (map_api.putTiles resolves in-memory), so request interception can't
-  // observe it either. The honest, verifiable signal available here is that the click is
-  // handled without crashing the page - asserted below via the canvas remaining visible
-  // and interactive, plus the page-error collector checked at the end of the test.
+  // A successful placement surfaces a DOM-visible "Tile placed" confirmation toast
+  // (dm_map_panel.tsx) once place_map_tile's REST persistence actually resolves -
+  // this is the real, non-3D-canvas signal a DM sees on success.
   await map_canvas.click()
+  await expect(page.getByText('Tile placed')).toBeVisible()
   await expect(map_canvas).toBeVisible()
 
   // --- Toggle the in-session sidebar collapse (and back, so Combat Controls stays usable) ---

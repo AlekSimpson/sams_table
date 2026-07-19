@@ -23,7 +23,9 @@ export function map_viewmodel() {
     [send]
   )
 
-  /** DM: place a tile in the builder and persist the full tile list via REST. */
+  /** DM: place a tile in the builder and persist the full tile list via REST.
+   *  Resolves true once persistence actually succeeds (false on failure), so callers
+   *  can surface a confirmation only for a real, persisted placement. */
   const place_map_tile = useCallback(
     async (map_ID: string, tile: Omit<MapTile, 'id' | 'map_id'>) => {
       const placed_tile: MapTile = { ...tile, id: crypto.randomUUID(), map_id: map_ID }
@@ -31,8 +33,10 @@ export function map_viewmodel() {
       set_tiles_error(null)
       try {
         await map_api.putTiles(map_ID, map_model.getState().tiles)
+        return true
       } catch (err) {
         set_tiles_error(err instanceof Error ? err.message : 'Failed to save map tiles')
+        return false
       }
     },
     [place_tile]
