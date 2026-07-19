@@ -13,7 +13,7 @@ export function is_valid_dice_notation(notation: string): boolean {
 }
 
 export function combat_viewmodel() {
-  const { initiative_order, last_dice_roll_result } = combat_model()
+  const { initiative_order, last_dice_roll_result, dice_roll_history } = combat_model()
   const [active_turn_index, set_active_turn_index] = useState(0)
   const { send } = websocket_hook()
 
@@ -154,5 +154,6 @@ export function combat_viewmodel() {
     roll_dice,
     initiative_input_model,
     dice_roller_model,
+    dice_roll_history,
   }
 }
