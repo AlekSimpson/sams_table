@@ -27,8 +27,8 @@ test('Invalid join code shows an inline error and does not start a session', asy
   await page.getByPlaceholder('Join Code').fill(bogus_code)
   await page.getByRole('button', { name: 'Join' }).click()
 
-  await expect(page.locator('.player-dashboard__join-error')).toBeVisible()
-  await expect(page.locator('.player-dashboard__join-error')).toContainText(bogus_code)
+  await expect(page.locator('.session-status-bar__join-error')).toBeVisible()
+  await expect(page.locator('.session-status-bar__join-error')).toContainText(bogus_code)
   // join_code_model (session_viewmodel.ts) only clears the draft on a successful join —
   // it staying populated is direct proof the join never went through.
   await expect(page.getByPlaceholder('Join Code')).toHaveValue(bogus_code)
@@ -203,7 +203,7 @@ test('DM can revoke a joined player\'s can_move_tokens permission, and it persis
   await expect(player_page).toHaveURL(/\/play\/dashboard\//)
   await player_page.getByPlaceholder('Join Code').fill(join_code!)
   await player_page.getByRole('button', { name: 'Join' }).click()
-  await expect(player_page.locator('.player-dashboard__join-error')).not.toBeVisible()
+  await expect(player_page.locator('.session-status-bar__join-error')).not.toBeVisible()
   await expect(player_page.getByPlaceholder('Join Code')).toHaveValue('')
   await player_page.close()
 

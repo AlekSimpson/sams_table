@@ -1,0 +1,39 @@
+.session-status-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.session-status-bar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.session-status-bar__dot--active {
+  background: var(--color-success);
+}
+
+.session-status-bar__join-code {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.session-status-bar__join-code-input {
+  width: 140px;
+  min-height: 36px;
+}
+
+.session-status-bar__join-error {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  white-space: nowrap;
+}

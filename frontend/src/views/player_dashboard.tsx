@@ -6,18 +6,19 @@ import CharacterSheet from './character_sheet'
 import DiceRoller from './dice_roller'
 import DiceRollFeed from './dice_roll_feed'
 import { PlayerDashboardParameters } from "../types/app_types"
-import { Button, Card, Input, Sidebar, TopBar } from './components'
+import { Button, Card, SessionStatusBar, Sidebar, TopBar } from './components'
 import '../../styles/player_dashboard.css'
 
 export default function PlayerDashboard() {
   const { character_id } = useParams<PlayerDashboardParameters>()
   if (!character_id) return null
   const { characters, player_dashboard_model } = character_viewmodel()
-  const { join_code_model } = session_viewmodel()
+  const { join_code_model, active_map_id } = session_viewmodel()
   const character = characters[character_id]
   if (!character) return <div>Character not found</div>
   const model = player_dashboard_model()
   const join_code = join_code_model()
+  const is_in_session = active_map_id !== null
 
   const on_join_code_key_down = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') join_code.on_submit(character.name)
@@ -28,27 +29,19 @@ export default function PlayerDashboard() {
       <TopBar
         title={character.name || 'Character'}
         right={
-          <div className="player-dashboard__join-code">
-            <Input
-              className="player-dashboard__campaign-input"
-              placeholder="Join Code"
-              value={join_code.join_code_draft}
-              onChange={join_code.on_join_code_change}
-              onKeyDown={on_join_code_key_down}
-              disabled={join_code.is_joining}
-            />
-            <Button
-              variant="secondary"
-              size="small"
-              onClick={() => join_code.on_submit(character.name)}
-              disabled={join_code.is_joining || !join_code.join_code_draft.trim()}
-            >
-              {join_code.is_joining ? 'Joining…' : 'Join'}
-            </Button>
-            {join_code.join_error && (
-              <span className="player-dashboard__join-error" role="alert">{join_code.join_error}</span>
-            )}
-          </div>
+          <SessionStatusBar
+            role="player"
+            is_in_session={is_in_session}
+            player_props={{
+              join_code_draft: join_code.join_code_draft,
+              on_join_code_change: join_code.on_join_code_change,
+              on_join_code_key_down,
+              on_join_press: () => join_code.on_submit(character.name),
+              is_joining: join_code.is_joining,
+              join_error: join_code.join_error,
+              on_live_map_press: model.on_map_tab_press,
+            }}
+          />
         }
       />
 
@@ -62,14 +55,6 @@ export default function PlayerDashboard() {
               onClick={model.on_sheet_tab_press}
             >
               Character Sheet
-            </Button>
-            <Button
-              variant={model.current_tab === 'map' ? 'secondary' : 'ghost'}
-              size="small"
-              full_width
-              onClick={model.on_map_tab_press}
-            >
-              Live Map
             </Button>
             <Button
               variant={model.current_tab === 'dice' ? 'secondary' : 'ghost'}

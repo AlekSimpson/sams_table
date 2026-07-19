@@ -56,7 +56,7 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   // --- Join the DM's session using the real join code obtained above ---
   await page.getByPlaceholder('Join Code').fill(join_code!)
   await page.getByRole('button', { name: 'Join' }).click()
-  await expect(page.locator('.player-dashboard__join-error')).not.toBeVisible()
+  await expect(page.locator('.session-status-bar__join-error')).not.toBeVisible()
   await expect(page.getByPlaceholder('Join Code')).toHaveValue('')
 
   // --- Edit current HP via the character sheet input ---

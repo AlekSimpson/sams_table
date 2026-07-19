@@ -1,6 +1,6 @@
 // VIEW layer — DM dashboard shell (pre-session sidebar nav vs. in-session map + control sidebar)
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
-import { Badge, Button, Card, Panel, Sidebar, TopBar } from './components'
+import { Badge, Button, Card, Panel, SessionStatusBar, Sidebar, TopBar } from './components'
 import CampaignListPanel from './campaign_list_panel'
 import DmCombatControlsPanel from './dm_combat_controls_panel'
 import DmMapPanel from './dm_map_panel'
@@ -19,18 +19,16 @@ export default function DMDashboard() {
       <TopBar
         title={selected_campaign?.name ?? 'DM Dashboard'}
         right={
-          is_in_session && session ? (
-            <>
-              <span className="section-label">Join Code</span>
-              <Badge variant="info">{session.join_code}</Badge>
-              <Button variant="ghost" size="small" onClick={session_controls.on_copy_press}>
-                {session_controls.copied ? 'Copied!' : 'Copy'}
-              </Button>
-              <Button variant="destructive" size="small" onClick={end_session}>
-                End Session
-              </Button>
-            </>
-          ) : undefined
+          <SessionStatusBar
+            role="dm"
+            is_in_session={is_in_session}
+            dm_props={{
+              join_code: session?.join_code ?? '',
+              copied: session_controls.copied,
+              on_copy_press: session_controls.on_copy_press,
+              on_end_session_press: end_session,
+            }}
+          />
         }
       />
 
