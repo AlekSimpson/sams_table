@@ -74,3 +74,20 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
+
+.campaign-detail-panel__map-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.campaign-detail-panel__map-form-grid-fields {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.campaign-detail-panel__map-form-error {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}

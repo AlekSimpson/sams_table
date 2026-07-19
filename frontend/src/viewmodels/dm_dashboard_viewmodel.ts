@@ -1,7 +1,8 @@
 // VIEWMODEL layer — DM dashboard logic. The only DM-dashboard-related import Views need.
 import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
-import { campaign_api, character_api, permission_api, session_api } from '../util/rest_client'
+import { campaign_api, character_api, map_api, permission_api, session_api } from '../util/rest_client'
 import { CampaignDetailTab, DmDashboardTab } from '../types/app_types'
 import { CampaignPermissionEntry, DNDCampaign, DNDCharacter } from '../types/dnd_types'
 import { GameMap } from '../types/game_types'
@@ -22,6 +23,7 @@ export function dm_dashboard_viewmodel() {
     remove_joined_player,
     clear_joined_players,
   } = dm_dashboard_model()
+  const navigate = useNavigate()
 
   const load_campaigns = useCallback(async () => {
     const loaded_campaigns = await campaign_api.list()
@@ -111,6 +113,11 @@ export function dm_dashboard_viewmodel() {
     const [current_tab, set_current_tab] = useState<CampaignDetailTab>('characters')
     const [characters, set_characters] = useState<DNDCharacter[]>([])
     const [maps, set_maps] = useState<GameMap[]>([])
+    const [new_map_name, set_new_map_name] = useState('')
+    const [new_map_grid_width_draft, set_new_map_grid_width_draft] = useState('30')
+    const [new_map_grid_height_draft, set_new_map_grid_height_draft] = useState('30')
+    const [new_map_validation_error, set_new_map_validation_error] = useState<string | null>(null)
+    const [is_creating_map, set_is_creating_map] = useState(false)
 
     const on_characters_tab_press = () => set_current_tab('characters')
     const on_maps_tab_press = () => set_current_tab('maps')
@@ -125,6 +132,45 @@ export function dm_dashboard_viewmodel() {
       set_maps(loaded_maps)
     }, [campaign_id])
 
+    const on_new_map_name_change = (event: React.ChangeEvent<HTMLInputElement>) => {
+      set_new_map_name(event.target.value)
+      if (new_map_validation_error) set_new_map_validation_error(null)
+    }
+
+    const on_new_map_grid_width_change = (event: React.ChangeEvent<HTMLInputElement>) => {
+      set_new_map_grid_width_draft(event.target.value)
+      if (new_map_validation_error) set_new_map_validation_error(null)
+    }
+
+    const on_new_map_grid_height_change = (event: React.ChangeEvent<HTMLInputElement>) => {
+      set_new_map_grid_height_draft(event.target.value)
+      if (new_map_validation_error) set_new_map_validation_error(null)
+    }
+
+    const on_create_map_press = async () => {
+      const trimmed_name = new_map_name.trim()
+      if (!trimmed_name) return
+
+      const grid_width = Number(new_map_grid_width_draft)
+      const grid_height = Number(new_map_grid_height_draft)
+      const is_positive_integer = (value: number) => Number.isInteger(value) && value > 0
+
+      if (!is_positive_integer(grid_width) || !is_positive_integer(grid_height)) {
+        set_new_map_validation_error('Grid width and height must be positive whole numbers')
+        return
+      }
+
+      set_new_map_validation_error(null)
+      set_is_creating_map(true)
+      try {
+        const new_map = await map_api.create(campaign_id, trimmed_name, grid_width, grid_height)
+        set_maps((existing_maps) => [...existing_maps, new_map])
+        navigate(`/dm/map-builder/${new_map.id}`)
+      } finally {
+        set_is_creating_map(false)
+      }
+    }
+
     return {
       current_tab,
       characters,
@@ -133,6 +179,15 @@ export function dm_dashboard_viewmodel() {
       on_maps_tab_press,
       load_characters,
       load_maps,
+      new_map_name,
+      new_map_grid_width_draft,
+      new_map_grid_height_draft,
+      new_map_validation_error,
+      is_creating_map,
+      on_new_map_name_change,
+      on_new_map_grid_width_change,
+      on_new_map_grid_height_change,
+      on_create_map_press,
     }
   }
 
