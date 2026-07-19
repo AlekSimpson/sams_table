@@ -1,0 +1,49 @@
+.avatar {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-primary);
+  color: var(--color-bg);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
+  user-select: none;
+}
+
+.avatar--small {
+  width: 32px;
+  height: 32px;
+  font-size: var(--font-size-md);
+}
+
+.avatar--medium {
+  width: 46px;
+  height: 46px;
+  font-size: var(--font-size-xl);
+}
+
+.avatar--large {
+  width: 64px;
+  height: 64px;
+  font-size: var(--font-size-2xl);
+}
+
+.avatar__badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-surface);
+}

@@ -3,7 +3,8 @@ import { useEffect } from 'react'
 import { session_viewmodel } from '../viewmodels/session_viewmodel'
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
 import { DNDCharacter } from '../types/dnd_types'
-import '../../styles/PlayerView.css'
+import { Avatar, Button, Card, TopBar } from './components'
+import '../../styles/player_view.css'
 
 interface CharacterCardProps {
   character: DNDCharacter
@@ -14,11 +15,9 @@ function CharacterCard({ character }: CharacterCardProps) {
   const model = character_card_model(character)
 
   return (
-    <div className="character-card" onClick={model.on_card_click}>
+    <Card className="character-card" onClick={model.on_card_click}>
       <div className="character-card__top">
-        <div className="character-card__portrait">
-          {character.name?.[0]?.toUpperCase() ?? '?'}
-        </div>
+        <Avatar label={character.name?.[0]?.toUpperCase() ?? '?'} />
 
         <div className="character-card__info">
           <div className="character-card__name">
@@ -30,9 +29,14 @@ function CharacterCard({ character }: CharacterCardProps) {
         </div>
       </div>
 
-      <button className="btn btn--danger character-card__delete-btn" onClick={model.on_delete_click}>
+      <Button
+        variant="destructive"
+        size="small"
+        className="character-card__delete-btn"
+        onClick={model.on_delete_click}
+      >
         Delete
-      </button>
+      </Button>
 
       <div className="character-card__stats">
         <div className="character-card__stat">
@@ -54,7 +58,7 @@ function CharacterCard({ character }: CharacterCardProps) {
       <div className="character-card__hp-bar">
         <div className="character-card__hp-bar-fill" style={{ width: `${model.health_percentage}%` }} />
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -76,12 +80,10 @@ export default function PlayerView() {
 
   return (
     <div className="player-view">
-      <header className="player-view__header">
-        <h1 className="player-view__title">Characters</h1>
-        <button className="btn btn--primary btn--sm" onClick={on_create_press}>
-          + New Character
-        </button>
-      </header>
+      <TopBar
+        title="Characters"
+        right={<Button variant="primary" size="small" onClick={on_create_press}>+ New Character</Button>}
+      />
 
       <main className="player-view__content">
         {character_list.length === 0 ? (

@@ -1,6 +1,7 @@
 // VIEW layer — register page
 import { session_viewmodel } from '../viewmodels/session_viewmodel'
-import '../../styles/Login.css'
+import { Button, Card, Input } from './components'
+import '../../styles/login.css'
 
 export default function Register() {
   const { register_page_model } = session_viewmodel()
@@ -8,7 +9,7 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <Card className="auth-card">
         <div className="auth-brand">
           <span className="auth-brand__icon">⚔</span>
           <h1 className="auth-brand__title">Sam's Table</h1>
@@ -16,45 +17,39 @@ export default function Register() {
         </div>
 
         <div className="auth-form">
-          <div className="form-group">
-            <label className="form-label">Username</label>
-            <input
-              id="register-username-input"
-              type="text"
-              className="form-input"
-              value={model.username}
-              onChange={model.on_username_change}
-              onKeyDown={model.on_key_down}
-              placeholder="Choose a username"
-              autoComplete="username"
-            />
-          </div>
+          <Input
+            id="register-username-input"
+            label="Username"
+            type="text"
+            value={model.username}
+            onChange={model.on_username_change}
+            onKeyDown={model.on_key_down}
+            placeholder="Choose a username"
+            autoComplete="username"
+          />
 
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <input
-              id="register-password-input"
-              type="password"
-              className="form-input"
-              value={model.password}
-              onChange={model.on_password_change}
-              onKeyDown={model.on_key_down}
-              placeholder="Choose a password"
-              autoComplete="new-password"
-            />
-          </div>
+          <Input
+            id="register-password-input"
+            label="Password"
+            type="password"
+            value={model.password}
+            onChange={model.on_password_change}
+            onKeyDown={model.on_key_down}
+            placeholder="Choose a password"
+            autoComplete="new-password"
+          />
 
-          <button className="btn btn--primary btn--full" onClick={model.on_submit}>
+          <Button variant="primary" full_width onClick={model.on_submit}>
             Create Account
-          </button>
+          </Button>
 
           <div className="auth-divider"><span>or</span></div>
 
-          <button className="btn btn--ghost btn--full" onClick={model.on_sign_in_press}>
+          <Button variant="ghost" full_width onClick={model.on_sign_in_press}>
             Sign In
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
