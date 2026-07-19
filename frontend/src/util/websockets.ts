@@ -14,7 +14,8 @@ import {
   MapTileRemovedPayload,
   TokenMovedPayload,
   ConditionUpdatePayload,
-  InitiativeUpdatePayload
+  InitiativeUpdatePayload,
+  DiceRollResultPayload
 } from '../types/websocket_types'
 
 function dispatch_websocket_event(envelope: WSEnvelope) {
@@ -69,7 +70,11 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
       combat_state.set_initiative_order(p.ordered_entries)
       break
     }
-    case 'dice_roll_result':
+    case 'dice_roll_result': {
+      const p = envelope.payload as DiceRollResultPayload
+      combat_state.set_last_dice_roll_result(p)
+      break
+    }
     case 'visibility_toggle':
       // TODO: route to combat store when implemented
       console.log('ws event (unhandled):', envelope.type, envelope.payload)
