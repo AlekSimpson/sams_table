@@ -1,5 +1,9 @@
 // MODEL layer — singleton WS connection. Used by viewmodels, not Views directly.
-import { useCallback, useEffect, useRef } from 'react'
+// websocket_hook() is a genuine per-tab singleton: module-level state below (see
+// shared_websocket_connection/active_consumer_count) holds the one real connection, and
+// every websocket_hook() call acquires/releases a reference to it rather than opening its
+// own socket. See acquire_shared_websocket_connection/release_shared_websocket_connection.
+import { useCallback, useEffect } from 'react'
 import { session_model } from '../models/session_model'
 import { map_model } from '../models/map_model'
 import { character_model } from '../models/character_model'
@@ -130,41 +134,90 @@ export function dispatch_websocket_event(envelope: WSEnvelope) {
   }
 }
 
+interface SharedWebsocketConnection {
+  socket: WebSocket
+  token: string
+}
+
+// Module-level singleton state: at most one real connection open per browser tab,
+// shared by every websocket_hook() caller. active_consumer_count tracks how many
+// mounted hook instances currently hold a reference to it, so the connection is
+// only closed once the last consumer unmounts (see acquire/release below).
+let shared_websocket_connection: SharedWebsocketConnection | null = null
+let active_consumer_count = 0
+
+function open_shared_websocket_connection(token: string): SharedWebsocketConnection {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const websocket_url = `${protocol}//${window.location.host}/ws?token=${token}`
+  // MockWebSocket implements the subset of the WebSocket interface used below
+  // (onopen/onclose/onerror/onmessage/send/close/readyState); the cast keeps the
+  // mock swap contained to this one line. See ./mock/mock_websocket.ts.
+  const socket = (MOCK_MODE_ENABLED ? new MockWebSocket(websocket_url) : new WebSocket(websocket_url)) as unknown as WebSocket
+
+  socket.onopen = () => console.log('ws: connected')
+  socket.onclose = () => console.log('ws: disconnected')
+  socket.onerror = (err) => console.error('ws: error', err)
+  // Single onmessage handler for the whole tab: dispatch_websocket_event runs exactly
+  // once per incoming message, no matter how many components called websocket_hook().
+  socket.onmessage = (event: MessageEvent<string>) => {
+    try {
+      const envelope = JSON.parse(event.data) as WSEnvelope
+      dispatch_websocket_event(envelope)
+    } catch (err) {
+      console.error('ws: parse error', err)
+    }
+  }
+
+  const connection: SharedWebsocketConnection = { socket, token }
+  shared_websocket_connection = connection
+  return connection
+}
+
+// Acquires a reference to the shared connection for `token`, opening it if this is the
+// first consumer or if `token` differs from the connection currently open (e.g. a logout
+// followed by a different login) — the stale connection is torn down first in that case.
+// Returns the connection instance so the caller's cleanup can release that exact instance
+// (see release_shared_websocket_connection) rather than whatever happens to be current at
+// cleanup time, which keeps ref-counting correct no matter what order multiple simultaneous
+// websocket_hook() consumers' effects run in.
+function acquire_shared_websocket_connection(token: string): SharedWebsocketConnection {
+  if (shared_websocket_connection && shared_websocket_connection.token !== token) {
+    shared_websocket_connection.socket.close()
+    shared_websocket_connection = null
+    active_consumer_count = 0
+  }
+  const connection = shared_websocket_connection ?? open_shared_websocket_connection(token)
+  active_consumer_count += 1
+  return connection
+}
+
+// Releases this consumer's reference to `connection`; closes the shared connection only
+// once the last consumer has released it. A no-op if `connection` has already been
+// replaced/torn down (e.g. a token change already swapped it out from under this consumer).
+function release_shared_websocket_connection(connection: SharedWebsocketConnection): void {
+  if (shared_websocket_connection !== connection) return
+  active_consumer_count = Math.max(0, active_consumer_count - 1)
+  if (active_consumer_count === 0) {
+    connection.socket.close()
+    shared_websocket_connection = null
+  }
+}
+
 export function websocket_hook() {
-  const websocket_reference = useRef<WebSocket | null>(null)
   const token = session_model((state) => state.token)
 
   useEffect(() => {
     if (!token) return
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const websocket_url = `${protocol}//${window.location.host}/ws?token=${token}`
-    // MockWebSocket implements the subset of the WebSocket interface used below
-    // (onopen/onclose/onerror/onmessage/send/close/readyState); the cast keeps the
-    // mock swap contained to this one line. See ./mock/mock_websocket.ts.
-    const ws = (MOCK_MODE_ENABLED ? new MockWebSocket(websocket_url) : new WebSocket(websocket_url)) as unknown as WebSocket
-    websocket_reference.current = ws
-
-    ws.onopen = () => console.log('ws: connected')
-    ws.onclose = () => console.log('ws: disconnected')
-    ws.onerror = (err) => console.error('ws: error', err)
-    ws.onmessage = (event: MessageEvent<string>) => {
-      try {
-        const envelope = JSON.parse(event.data) as WSEnvelope
-        dispatch_websocket_event(envelope)
-      } catch (err) {
-        console.error('ws: parse error', err)
-      }
-    }
-
-    return () => ws.close()
+    const connection = acquire_shared_websocket_connection(token)
+    return () => release_shared_websocket_connection(connection)
   }, [token])
 
   // send a typed WS event to the server. No-op if not connected.
   const send = useCallback(<T>(type: WSEventType, payload: T) => {
-    if (websocket_reference.current?.readyState === WebSocket.OPEN) {
+    if (shared_websocket_connection?.socket.readyState === WebSocket.OPEN) {
       const envelope: Partial<WSEnvelope<T>> = { type, payload }
-      websocket_reference.current.send(JSON.stringify(envelope))
+      shared_websocket_connection.socket.send(JSON.stringify(envelope))
     } else {
       console.warn('ws: not connected — dropping event:', type)
     }
