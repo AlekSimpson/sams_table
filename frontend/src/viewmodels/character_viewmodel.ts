@@ -137,6 +137,14 @@ export function character_viewmodel() {
     , [set_characters]
   )
 
+  const load_campaign_characters = useCallback(
+    async (campaign_id: string) => {
+      const characters = await character_api.list_characters_in_campaign(campaign_id)
+      set_characters(characters)
+    }
+    , [set_characters]
+  )
+
   const create_new_character_for_user = useCallback(
     async (user_id: string, character_name: string) => {
       const new_character = await character_api.create(user_id, { name: character_name })
@@ -196,6 +204,7 @@ export function character_viewmodel() {
   return {
     characters,
     load_user_characters,
+    load_campaign_characters,
     update_hp,
     update_conditions,
     set_characters,
