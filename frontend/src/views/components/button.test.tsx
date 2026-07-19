@@ -1,14 +1,6 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import Button from './button'
-
-// This project's vitest.config.ts does not set `test.globals: true`, so
-// @testing-library/react's automatic afterEach cleanup never registers.
-// Without an explicit unmount here, elements rendered by one test would
-// still be in the document when the next test's queries run.
-afterEach(() => {
-  cleanup()
-})
 
 describe('Button', () => {
   it('renders its children as the button label', () => {

@@ -1,5 +1,5 @@
-import { act, cleanup, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { map_model } from '../models/map_model'
 import { MapTile, Token } from '../types/game_types'
 import { CampaignPermissionEntry } from '../types/dnd_types'
@@ -62,14 +62,6 @@ function render_map_viewmodel() {
 beforeEach(() => {
   map_model.getState().reset()
   vi.resetAllMocks()
-})
-
-// This project's vitest.config.ts does not set `test.globals: true`, so
-// @testing-library/react's automatic afterEach cleanup never registers. Without an
-// explicit unmount here, a hook rendered by one test stays mounted and subscribed to
-// map_model, and throws when a later test resets/mutates the store out from under it.
-afterEach(() => {
-  cleanup()
 })
 
 describe('load_map', () => {

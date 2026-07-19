@@ -1,10 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 import ConditionBadge from './condition_badge'
-
-afterEach(() => {
-  cleanup()
-})
 
 describe('ConditionBadge', () => {
   it('renders the condition text', () => {

@@ -1,5 +1,5 @@
-import { act, cleanup, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { combat_model } from '../models/combat_model'
 import { character_model } from '../models/character_model'
 import { DNDCharacter } from '../types/dnd_types'
@@ -81,15 +81,6 @@ beforeEach(() => {
   combat_model.setState(COMBAT_INITIAL_STATE)
   character_model.getState().clear()
   vi.resetAllMocks()
-})
-
-// This project's vitest.config.ts does not set `test.globals: true`, so
-// @testing-library/react's automatic afterEach cleanup (which depends on a global
-// `afterEach`) never registers. Without an explicit unmount here, a hook rendered by one
-// test stays mounted and subscribed to combat_model/character_model, and throws when a
-// later test resets/mutates the store out from under it.
-afterEach(() => {
-  cleanup()
 })
 
 describe('is_valid_dice_notation', () => {

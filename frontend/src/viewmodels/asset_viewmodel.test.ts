@@ -1,5 +1,5 @@
-import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { UploadedAsset } from '../types/game_types'
 
 // asset_api/campaign_api are mocked at the module level (rather than letting calls fall
@@ -55,14 +55,6 @@ function render_asset_upload_form(campaign_id = 'campaign-1', on_upload_success?
 
 beforeEach(() => {
   vi.resetAllMocks()
-})
-
-// This project's vitest.config.ts does not set `test.globals: true`, so
-// @testing-library/react's automatic afterEach cleanup never registers. Without an
-// explicit unmount here, a hook rendered by one test stays mounted, following the pattern
-// in character_viewmodel.test.ts.
-afterEach(() => {
-  cleanup()
 })
 
 describe('uploadSTL', () => {

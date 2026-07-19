@@ -1,5 +1,5 @@
-import { act, cleanup, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { session_model } from '../models/session_model'
 import { SessionJoinResponse } from '../types/app_types'
 
@@ -44,14 +44,6 @@ beforeEach(() => {
     { id: 'user-1', username: 'sam', created_at: '2026-01-01T00:00:00Z' }
   )
   vi.resetAllMocks()
-})
-
-// This project's vitest.config.ts does not set `test.globals: true`, so
-// @testing-library/react's automatic afterEach cleanup never registers. Without an
-// explicit unmount here, a hook rendered by one test stays mounted, following the pattern
-// in character_viewmodel.test.ts.
-afterEach(() => {
-  cleanup()
 })
 
 describe('join_code_model', () => {
