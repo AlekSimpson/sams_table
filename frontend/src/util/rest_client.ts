@@ -191,4 +191,10 @@ export const session_api = {
       () => request<SessionJoinResponse>(`/sessions/join/${code}`, { method: 'POST' }),
       () => mock_session_api.join(code)
     ),
+
+  end: (campaign_id: string) =>
+    resolve(
+      () => request<void>(`/campaigns/${campaign_id}/sessions`, { method: 'DELETE' }),
+      () => mock_session_api.end(campaign_id)
+    ),
 }

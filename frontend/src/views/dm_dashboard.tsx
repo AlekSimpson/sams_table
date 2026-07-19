@@ -1,19 +1,37 @@
 // VIEW layer — DM dashboard shell (pre-session sidebar nav vs. in-session map + control sidebar)
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
-import { Button, Card, Panel, Sidebar, TopBar } from './components'
+import { Badge, Button, Card, Panel, Sidebar, TopBar } from './components'
 import CampaignListPanel from './campaign_list_panel'
 import DmCombatControlsPanel from './dm_combat_controls_panel'
 import DmMapPanel from './dm_map_panel'
 import '../../styles/dm_dashboard.css'
 
 export default function DMDashboard() {
-  const { session, selected_campaign, dm_dashboard_shell_model } = dm_dashboard_viewmodel()
+  const { session, selected_campaign, joined_players, end_session, dm_dashboard_shell_model, session_controls_model } =
+    dm_dashboard_viewmodel()
   const model = dm_dashboard_shell_model()
+  const session_controls = session_controls_model(session?.join_code ?? '')
   const is_in_session = session !== null
 
   return (
     <div className="dm-dashboard">
-      <TopBar title={selected_campaign?.name ?? 'DM Dashboard'} />
+      <TopBar
+        title={selected_campaign?.name ?? 'DM Dashboard'}
+        right={
+          is_in_session && session ? (
+            <>
+              <span className="section-label">Join Code</span>
+              <Badge variant="info">{session.join_code}</Badge>
+              <Button variant="ghost" size="small" onClick={session_controls.on_copy_press}>
+                {session_controls.copied ? 'Copied!' : 'Copy'}
+              </Button>
+              <Button variant="destructive" size="small" onClick={end_session}>
+                End Session
+              </Button>
+            </>
+          ) : undefined
+        }
+      />
 
       {is_in_session ? (
         <div className="dm-dashboard__session-body">
@@ -29,6 +47,20 @@ export default function DMDashboard() {
 
           <Sidebar side="right" collapsible>
             <div className="dm-dashboard__control-sections">
+              <Panel>
+                <span className="section-label">Players</span>
+                <div className="dm-dashboard__players-list">
+                  {joined_players.length === 0 ? (
+                    <Badge variant="neutral">No players joined yet</Badge>
+                  ) : (
+                    joined_players.map((player) => (
+                      <Badge key={player.user_id} variant="success">
+                        {player.character_name}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </Panel>
               <Panel>
                 <span className="section-label">Combat Controls</span>
                 {selected_campaign ? (
