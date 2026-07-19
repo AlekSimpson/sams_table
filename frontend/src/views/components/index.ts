@@ -1,0 +1,10 @@
+// Shared component library — presentational only, no viewmodel/model imports.
+export { default as Avatar } from './avatar'
+export { default as Badge } from './badge'
+export { default as Button } from './button'
+export { default as Card } from './card'
+export { default as Input } from './input'
+export { default as Modal } from './modal'
+export { default as Panel } from './panel'
+export { default as Sidebar } from './sidebar'
+export { default as TopBar } from './top_bar'
