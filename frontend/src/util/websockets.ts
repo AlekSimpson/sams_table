@@ -21,7 +21,8 @@ import {
   PlayerLeftPayload
 } from '../types/websocket_types'
 
-function dispatch_websocket_event(envelope: WSEnvelope) {
+// Exported for unit testing (see websockets.test.ts) — not used outside this module otherwise.
+export function dispatch_websocket_event(envelope: WSEnvelope) {
   // routes incoming WS events to the appropriate store actions.
   const map_state = map_model.getState()
   const character_state = character_model.getState()
