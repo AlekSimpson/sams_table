@@ -11,11 +11,12 @@
 
 :root {
   /* ── Color: surfaces ── */
-  --color-bg:               #0b0b16;
-  --color-surface:          #15151f;
-  --color-surface-secondary:#1c1c2b;
-  --color-surface-hover:    #262638;
-  --color-surface-glass:    rgba(20, 20, 31, 0.68);
+  --color-bg:               #1a1a24;
+  --color-surface:          #22222f;
+  --color-surface-secondary:#2b2b3c;
+  --color-surface-elevated: #35354a;
+  --color-surface-hover:    #40405a;
+  --color-surface-glass:    rgba(34, 34, 47, 0.68);
 
   /* ── Color: borders ── */
   --color-border:           rgba(148, 145, 200, 0.14);
@@ -64,10 +65,10 @@
   --space-10: 64px;
 
   /* ── Radius scale ── */
-  --radius-sm:   8px;
-  --radius-md:   12px;
-  --radius-lg:   16px;
-  --radius-xl:   22px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   7px;
+  --radius-xl:   8px;
   --radius-pill: 999px;
 
   /* ── Shadow scale ── */
