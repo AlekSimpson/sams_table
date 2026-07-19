@@ -18,6 +18,11 @@ export interface MapTile {
   rotation_y: number
 }
 
+export interface SelectedAsset {
+  id: string
+  source: MapTile['asset_source']
+}
+
 export interface Token {
   id: string
   character_id: string

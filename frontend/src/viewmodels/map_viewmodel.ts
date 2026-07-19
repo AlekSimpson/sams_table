@@ -8,7 +8,7 @@ import { CampaignPermissionEntry } from '../types/dnd_types'
 import { MapActivatedPayload, TokenMovedPayload } from '../types/websocket_types'
 
 export function map_viewmodel() {
-  const { tiles, tokens, mode, selected_asset_id, active_map_id, tiles_loading, set_mode, set_selected_asset, place_tile, remove_tile, move_token: move_token_in_store, set_active_map, set_tokens, set_tiles_loading } = map_model()
+  const { tiles, tokens, mode, selected_asset, active_map_id, tiles_loading, set_mode, set_selected_asset, place_tile, remove_tile, move_token: move_token_in_store, set_active_map, set_tokens, set_tiles_loading } = map_model()
   const { send } = websocket_hook()
   const [tiles_error, set_tiles_error] = useState<string | null>(null)
   const [permissions, set_permissions] = useState<CampaignPermissionEntry[]>([])
@@ -99,7 +99,7 @@ export function map_viewmodel() {
     tiles,
     tokens,
     mode,
-    selected_asset_id,
+    selected_asset,
     active_map_id,
     tiles_loading,
     tiles_error,
