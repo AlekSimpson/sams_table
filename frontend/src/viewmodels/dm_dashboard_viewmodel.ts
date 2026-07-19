@@ -1,9 +1,9 @@
 // VIEWMODEL layer — DM dashboard logic. The only DM-dashboard-related import Views need.
 import { useCallback, useState } from 'react'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
-import { campaign_api, character_api, session_api } from '../util/rest_client'
+import { campaign_api, character_api, permission_api, session_api } from '../util/rest_client'
 import { CampaignDetailTab, DmDashboardTab } from '../types/app_types'
-import { DNDCampaign, DNDCharacter } from '../types/dnd_types'
+import { CampaignPermissionEntry, DNDCampaign, DNDCharacter } from '../types/dnd_types'
 import { GameMap } from '../types/game_types'
 
 export function dm_dashboard_viewmodel() {
@@ -161,6 +161,48 @@ export function dm_dashboard_viewmodel() {
     return { maps, load_maps }
   }
 
+  /** In-session Permissions panel: load each player's map permissions and persist
+   *  per-toggle edits immediately (optimistic update), mirroring dm_combat_controls_panel's
+   *  "toggle button, immediate persist" pattern. */
+  function permission_panel_model(campaign_id: string) {
+    const [permissions_by_user_id, set_permissions_by_user_id] = useState<Record<string, CampaignPermissionEntry>>({})
+
+    const load_permissions = useCallback(async () => {
+      const loaded_permissions = await permission_api.get(campaign_id)
+      const loaded_permissions_by_user_id: Record<string, CampaignPermissionEntry> = {}
+      for (const entry of loaded_permissions) {
+        loaded_permissions_by_user_id[entry.user_id] = entry
+      }
+      set_permissions_by_user_id(loaded_permissions_by_user_id)
+    }, [campaign_id])
+
+    /** A newly-joined player may not have a permission record yet — default to off. */
+    const get_player_permissions = (user_id: string): CampaignPermissionEntry =>
+      permissions_by_user_id[user_id] ?? { user_id, can_move_tokens: false, can_place_tiles: false }
+
+    const toggle_permission = useCallback(
+      async (user_id: string, permission_field: 'can_move_tokens' | 'can_place_tiles') => {
+        const current_permissions = permissions_by_user_id[user_id] ?? {
+          user_id,
+          can_move_tokens: false,
+          can_place_tiles: false,
+        }
+        const updated_permissions: CampaignPermissionEntry = {
+          ...current_permissions,
+          [permission_field]: !current_permissions[permission_field],
+        }
+        set_permissions_by_user_id((existing) => ({ ...existing, [user_id]: updated_permissions }))
+        await permission_api.set(campaign_id, user_id, {
+          can_move_tokens: updated_permissions.can_move_tokens,
+          can_place_tiles: updated_permissions.can_place_tiles,
+        })
+      },
+      [campaign_id, permissions_by_user_id]
+    )
+
+    return { get_player_permissions, load_permissions, toggle_permission }
+  }
+
   return {
     campaigns,
     selected_campaign,
@@ -180,5 +222,6 @@ export function dm_dashboard_viewmodel() {
     campaign_detail_panel_model,
     session_controls_model,
     map_selector_model,
+    permission_panel_model,
   }
 }

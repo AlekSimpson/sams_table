@@ -4,6 +4,7 @@ import { Badge, Button, Card, Panel, Sidebar, TopBar } from './components'
 import CampaignListPanel from './campaign_list_panel'
 import DmCombatControlsPanel from './dm_combat_controls_panel'
 import DmMapPanel from './dm_map_panel'
+import DmPermissionPanel from './dm_permission_panel'
 import '../../styles/dm_dashboard.css'
 
 export default function DMDashboard() {
@@ -71,7 +72,11 @@ export default function DMDashboard() {
               </Panel>
               <Panel>
                 <span className="section-label">Permissions</span>
-                <div className="scaffold-placeholder">Permissions — coming soon</div>
+                {selected_campaign ? (
+                  <DmPermissionPanel campaign_id={selected_campaign.id} />
+                ) : (
+                  <div className="scaffold-placeholder">Permissions — coming soon</div>
+                )}
               </Panel>
             </div>
           </Sidebar>
