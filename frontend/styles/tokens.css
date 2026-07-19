@@ -1,49 +1,52 @@
 /* ══════════════════════════════════════════════════════
    DESIGN TOKENS — single source of truth
-   Direction: "clean Apple-native" — light frosted-glass panels,
-   rounded cards, neutral graphite + blue accent, system sans-serif.
+   Direction: "dark immersive" — charcoal/indigo background scale,
+   amber accent, glassmorphic (blurred/translucent) panels.
+   Dark is the default palette (:root). A lighter fallback is
+   provided for users whose OS is set to light mode via
+   prefers-color-scheme.
    Every color/spacing/radius/shadow/typography value used anywhere
    in the app should trace back to a token defined here.
    ══════════════════════════════════════════════════════ */
 
 :root {
   /* ── Color: surfaces ── */
-  --color-bg:               #f5f5f7;
-  --color-surface:          #ffffff;
-  --color-surface-secondary:#f2f2f5;
-  --color-surface-hover:    #e8e8ed;
-  --color-surface-glass:    rgba(255, 255, 255, 0.72);
+  --color-bg:               #0b0b16;
+  --color-surface:          #15151f;
+  --color-surface-secondary:#1c1c2b;
+  --color-surface-hover:    #262638;
+  --color-surface-glass:    rgba(20, 20, 31, 0.68);
 
   /* ── Color: borders ── */
-  --color-border:           rgba(60, 60, 67, 0.13);
-  --color-border-strong:    rgba(60, 60, 67, 0.29);
+  --color-border:           rgba(148, 145, 200, 0.14);
+  --color-border-strong:    rgba(148, 145, 200, 0.30);
 
   /* ── Color: text ── */
-  --color-text-primary:     #1d1d1f;
-  --color-text-secondary:   #6e6e73;
-  --color-text-tertiary:    #8e8e93;
-  --color-text-quaternary:  #c7c7cc;
-  --color-text-on-accent:   #ffffff;
+  --color-text-primary:     #f3f2fb;
+  --color-text-secondary:   #aca9c4;
+  --color-text-tertiary:    #7d7a97;
+  --color-text-quaternary:  #47445c;
+  --color-text-on-accent:   #241a06;
 
   /* ── Color: accent (brand / primary actions / emphasis) ── */
-  --color-accent:           #0071e3;
-  --color-accent-hover:     #0077ed;
-  --color-accent-active:    #005bb5;
-  --color-accent-soft:      rgba(0, 113, 227, 0.12);
+  --color-accent:           #f2a51e;
+  --color-accent-hover:     #ffb84a;
+  --color-accent-active:    #c9840f;
+  --color-accent-soft:      rgba(242, 165, 30, 0.16);
 
   /* ── Color: semantic ── */
-  --color-danger:           #ff3b30;
-  --color-danger-hover:     #ff544a;
-  --color-danger-soft:      rgba(255, 59, 48, 0.12);
+  --color-danger:           #ff6b6b;
+  --color-danger-hover:     #ff8787;
+  --color-danger-soft:      rgba(255, 107, 107, 0.16);
 
-  --color-success:          #34c759;
-  --color-success-soft:     rgba(52, 199, 89, 0.12);
+  --color-success:          #45d483;
+  --color-success-soft:     rgba(69, 212, 131, 0.16);
 
-  --color-warning:          #ff9f0a;
-  --color-warning-soft:     rgba(255, 159, 10, 0.14);
+  --color-warning:          #fb8b3d;
+  --color-warning-soft:     rgba(251, 139, 61, 0.18);
 
-  --color-info:             #30b0c7;
-  --color-info-soft:        rgba(48, 176, 199, 0.12);
+  --color-info:             #8b93f8;
+  --color-info-soft:        rgba(139, 147, 248, 0.16);
 
   /* ── Frosted glass ── */
   --backdrop-blur:          20px;
@@ -96,39 +99,39 @@
   --tap-target-min: 44px;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --color-bg:               #000000;
-    --color-surface:          #1c1c1e;
-    --color-surface-secondary:#2c2c2e;
-    --color-surface-hover:    #3a3a3c;
-    --color-surface-glass:    rgba(28, 28, 30, 0.72);
+    --color-bg:               #f5f5f7;
+    --color-surface:          #ffffff;
+    --color-surface-secondary:#f2f2f5;
+    --color-surface-hover:    #e8e8ed;
+    --color-surface-glass:    rgba(255, 255, 255, 0.72);
 
-    --color-border:           rgba(84, 84, 88, 0.45);
-    --color-border-strong:    rgba(84, 84, 88, 0.72);
+    --color-border:           rgba(60, 60, 67, 0.13);
+    --color-border-strong:    rgba(60, 60, 67, 0.29);
 
-    --color-text-primary:     #f5f5f7;
-    --color-text-secondary:   #aeaeb2;
+    --color-text-primary:     #1d1d1f;
+    --color-text-secondary:   #6e6e73;
     --color-text-tertiary:    #8e8e93;
-    --color-text-quaternary:  #48484a;
+    --color-text-quaternary:  #c7c7cc;
     --color-text-on-accent:   #ffffff;
 
-    --color-accent:           #0a84ff;
-    --color-accent-hover:     #409cff;
-    --color-accent-active:    #0060c0;
-    --color-accent-soft:      rgba(10, 132, 255, 0.18);
+    --color-accent:           #0071e3;
+    --color-accent-hover:     #0077ed;
+    --color-accent-active:    #005bb5;
+    --color-accent-soft:      rgba(0, 113, 227, 0.12);
 
-    --color-danger:           #ff453a;
-    --color-danger-hover:     #ff6961;
-    --color-danger-soft:      rgba(255, 69, 58, 0.18);
+    --color-danger:           #ff3b30;
+    --color-danger-hover:     #ff544a;
+    --color-danger-soft:      rgba(255, 59, 48, 0.12);
 
-    --color-success:          #30d158;
-    --color-success-soft:     rgba(48, 209, 88, 0.18);
+    --color-success:          #34c759;
+    --color-success-soft:     rgba(52, 199, 89, 0.12);
 
     --color-warning:          #ff9f0a;
-    --color-warning-soft:     rgba(255, 159, 10, 0.18);
+    --color-warning-soft:     rgba(255, 159, 10, 0.14);
 
-    --color-info:             #40c8de;
-    --color-info-soft:        rgba(64, 200, 222, 0.18);
+    --color-info:             #30b0c7;
+    --color-info-soft:        rgba(48, 176, 199, 0.12);
   }
 }

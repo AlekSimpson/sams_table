@@ -3,7 +3,7 @@ import { character_viewmodel } from "../viewmodels/character_viewmodel"
 import { useParams } from 'react-router-dom'
 import CharacterSheet from './character_sheet'
 import { PlayerDashboardParameters } from "../types/app_types"
-import { Button, Input, TopBar } from './components'
+import { Button, Card, Input, Sidebar, TopBar } from './components'
 import '../../styles/player_dashboard.css'
 
 export default function PlayerDashboard() {
@@ -19,33 +19,41 @@ export default function PlayerDashboard() {
       <TopBar
         title={character.name || 'Character'}
         right={<Input className="player-dashboard__campaign-input" placeholder="Campaign ID" />}
-      >
-        <nav className="player-dashboard__nav">
-          <Button
-            variant={model.current_tab === 'sheet' ? 'secondary' : 'ghost'}
-            size="small"
-            onClick={model.on_sheet_tab_press}
-          >
-            Character Sheet
-          </Button>
-          <Button
-            variant={model.current_tab === 'map' ? 'secondary' : 'ghost'}
-            size="small"
-            onClick={model.on_map_tab_press}
-          >
-            Live Map
-          </Button>
-        </nav>
-      </TopBar>
+      />
 
-      <main className="player-dashboard__content">
-        {model.current_tab === 'sheet' && <CharacterSheet character_id={character_id} />}
-        {model.current_tab === 'map'   && (
-          <div className="scaffold-placeholder" style={{ margin: '32px', padding: '60px 20px' }}>
-            Live Map — coming soon
-          </div>
-        )}
-      </main>
+      <div className="player-dashboard__body">
+        <Sidebar collapsible>
+          <nav className="player-dashboard__nav">
+            <Button
+              variant={model.current_tab === 'sheet' ? 'secondary' : 'ghost'}
+              size="small"
+              full_width
+              onClick={model.on_sheet_tab_press}
+            >
+              Character Sheet
+            </Button>
+            <Button
+              variant={model.current_tab === 'map' ? 'secondary' : 'ghost'}
+              size="small"
+              full_width
+              onClick={model.on_map_tab_press}
+            >
+              Live Map
+            </Button>
+          </nav>
+        </Sidebar>
+
+        <Card maximizable className="player-dashboard__panel">
+          <main className="player-dashboard__content">
+            {model.current_tab === 'sheet' && <CharacterSheet character_id={character_id} />}
+            {model.current_tab === 'map'   && (
+              <div className="scaffold-placeholder" style={{ margin: '32px', padding: '60px 20px' }}>
+                Live Map — coming soon
+              </div>
+            )}
+          </main>
+        </Card>
+      </div>
     </div>
   )
 }
