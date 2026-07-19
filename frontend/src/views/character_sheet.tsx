@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react'
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
 import { CharacterSheetProps } from '../types/app_types'
 import { DNDCharacter } from '../types/dnd_types'
-import { Avatar, Button, Card, Input, Panel, Sidebar } from './components'
+import { Avatar, Button, Card, Input, Modal, Panel, Sidebar } from './components'
 import ConditionBadge from './condition_badge'
+import DiceRoller from './dice_roller'
+import DiceRollFeed from './dice_roll_feed'
 import '../../styles/character_sheet.css'
 
 // Placeholder passed to character_sheet_model() when the real character hasn't
@@ -147,6 +149,7 @@ function EquipmentTab({
 
 export default function CharacterSheet({ character_id }: CharacterSheetProps) {
   const { characters, character_sheet_model, load_character } = character_viewmodel()
+  const [is_dice_roller_open, set_is_dice_roller_open] = useState(false)
 
   useEffect(() => {
     load_character(character_id)
@@ -232,6 +235,15 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
               <span className="cs__id-stat-lbl">Inspiration</span>
             </div>
           </div>
+
+          <Button
+            variant="ghost"
+            size="small"
+            aria-label="Roll dice"
+            onClick={() => set_is_dice_roller_open(true)}
+          >
+            🎲
+          </Button>
         </div>
 
         {/* Stats grid */}
@@ -497,6 +509,17 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
         </Panel>
 
       </Sidebar>
+
+      <Modal
+        is_open={is_dice_roller_open}
+        onClose={() => set_is_dice_roller_open(false)}
+        title="Roll Dice"
+      >
+        <div className="cs__dice-modal-body">
+          <DiceRoller character_id={character_id} character_name={character.name} />
+          <DiceRollFeed />
+        </div>
+      </Modal>
     </div>
   )
 }

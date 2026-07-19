@@ -28,10 +28,3 @@
   overflow: hidden;
   min-height: 0;
 }
-
-.player-dashboard__dice-tab {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin: 32px;
-}
