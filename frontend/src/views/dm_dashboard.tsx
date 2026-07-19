@@ -106,7 +106,7 @@ export default function DMDashboard() {
             )}
           </main>
 
-          <Sidebar side="right" collapsible>
+          <Sidebar side="right" collapsible className="dm-dashboard__control-sidebar">
             <div className="dm-dashboard__control-sections">
               <Panel>
                 <span className="section-label">Players</span>
