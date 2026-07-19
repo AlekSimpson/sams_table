@@ -1,7 +1,9 @@
 // VIEW layer — full character sheet display
+import { useEffect } from 'react'
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
 import { CharacterSheetProps } from '../types/app_types'
-import { Avatar, Badge, Button, Card, Panel, Sidebar } from './components'
+import { Avatar, Button, Card, Panel, Sidebar } from './components'
+import ConditionBadge from './condition_badge'
 import '../../styles/character_sheet.css'
 
 function CombatTab() {
@@ -60,8 +62,30 @@ function ScaffoldTab({ label }: { label: string }) {
   )
 }
 
+function EquipmentTab({ equipment }: { equipment: string[] }) {
+  return (
+    <div className="cs__section">
+      <div className="cs__section-label">Equipment</div>
+      {equipment.length === 0 ? (
+        <div className="cs__attacks-empty">No equipment added yet</div>
+      ) : (
+        <ul className="cs__equipment-list">
+          {equipment.map((item, item_index) => (
+            <li key={item_index} className="cs__equipment-item">{item}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export default function CharacterSheet({ character_id }: CharacterSheetProps) {
-  const { characters, character_sheet_model } = character_viewmodel()
+  const { characters, character_sheet_model, load_character } = character_viewmodel()
+
+  useEffect(() => {
+    load_character(character_id)
+  }, [character_id])
+
   const character = characters[character_id]
   if (!character) return <div className="cs__not-found">Character not found</div>
   const model = character_sheet_model(character)
@@ -280,10 +304,10 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
           <div className="cs__tab-content">
             {model.active_tab === 'combat'    && <CombatTab />}
             {model.active_tab === 'spells'    && <ScaffoldTab label="Spells" />}
-            {model.active_tab === 'equipment' && <ScaffoldTab label="Equipment" />}
+            {model.active_tab === 'equipment' && <EquipmentTab equipment={character.equipment} />}
             {model.active_tab === 'features'  && <ScaffoldTab label="Features & Traits" />}
             {model.active_tab === 'notes'     && (
-              <textarea className="cs__notes" placeholder="Notes..." />
+              <textarea className="cs__notes" value={character.notes} placeholder="No notes yet" readOnly />
             )}
           </div>
 
@@ -294,7 +318,7 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
             </div>
             <div className="cs__skills-grid">
               {model.SKILLS.map(skill => {
-                const prof = model.is_skill_proficient(skill.ability)
+                const prof = model.is_skill_proficient(skill.key)
                 return (
                   <div key={skill.key} className="cs__skill-row">
                     <span className={`cs__skill-dot${prof ? ' cs__skill-dot--prof' : ''}`} />
@@ -304,7 +328,7 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
                       className="cs__skill-mod"
                       style={{ color: skill_mod_color(prof, character.stats[skill.ability]) }}
                     >
-                      {model.format_modifier(character.stats[skill.ability])}
+                      {model.format_skill_modifier(skill)}
                     </span>
                   </div>
                 )
@@ -339,8 +363,8 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
             <p className="cs__aside-empty">No active conditions</p>
           ) : (
             <div className="cs__conditions-list">
-              {character.conditions.map(c => (
-                <Badge key={c} variant="danger">{c}</Badge>
+              {character.conditions.map(condition => (
+                <ConditionBadge key={condition} condition={condition} />
               ))}
             </div>
           )}

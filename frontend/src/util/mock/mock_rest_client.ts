@@ -83,6 +83,8 @@ export const mock_character_api = {
         stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
         skill_profs: [],
         conditions: [],
+        equipment: [],
+        notes: '',
         created_at: new Date().toISOString(),
       }
       mock_store.characters.push(character)

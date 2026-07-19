@@ -35,6 +35,8 @@ const DEMO_CHARACTERS: DNDCharacter[] = [
     stats: { str: 16, dex: 14, con: 14, int: 10, wis: 12, cha: 8 },
     skill_profs: ['athletics', 'intimidation', 'perception'],
     conditions: [],
+    equipment: ['Longsword', 'Shield', 'Chain Mail', 'Explorer\'s Pack', 'Handaxe (2)'],
+    notes: 'Owes a debt to the Ashvale family. Distrustful of magic.',
     created_at: DEMO_CREATED_AT,
   },
   {
@@ -51,6 +53,8 @@ const DEMO_CHARACTERS: DNDCharacter[] = [
     stats: { str: 8, dex: 16, con: 12, int: 17, wis: 13, cha: 10 },
     skill_profs: ['arcana', 'investigation', 'history'],
     conditions: [],
+    equipment: ['Quarterstaff', 'Component Pouch', 'Spellbook', 'Scholar\'s Pack'],
+    notes: 'Seeking a lost tome rumored to be hidden beneath the Sunken Spire.',
     created_at: DEMO_CREATED_AT,
   },
   {
@@ -67,6 +71,8 @@ const DEMO_CHARACTERS: DNDCharacter[] = [
     stats: { str: 14, dex: 10, con: 15, int: 9, wis: 16, cha: 11 },
     skill_profs: ['medicine', 'religion', 'insight'],
     conditions: ['poisoned'],
+    equipment: ['Warhammer', 'Shield', 'Scale Mail', 'Holy Symbol', 'Priest\'s Pack'],
+    notes: '',
     created_at: DEMO_CREATED_AT,
   },
 ]

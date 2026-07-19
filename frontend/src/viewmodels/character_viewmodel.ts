@@ -91,13 +91,18 @@ export function character_viewmodel() {
     const on_stat_change = (key: string) => (event: React.ChangeEvent<HTMLInputElement>) => patch_stat(key, parseInt(event.target.value))
     const on_tab_select  = (tab: Tab)                  => () => set_active_tab(tab)
 
-    const is_skill_proficient = (stat: string) => (character.skill_profs ?? []).includes(stat)
+    const is_skill_proficient = (skill_key: string) => (character.skill_profs ?? []).includes(skill_key)
 
     const health_percentage = character.max_hp > 0
       ? Math.min(100, Math.max(0, (character.current_hp / character.max_hp) * 100))
       : 0
     const bonus = proficiency_bonus(character.level)
     const hp_bar_class = health_percentage < 25 ? ' cs__hp-bar-fill--critical' : health_percentage < 50 ? ' cs__hp-bar-fill--low' : ''
+
+    const format_skill_modifier = (skill: { ability: string; key: string }) => {
+      const modifier = ability_modifier(character.stats[skill.ability]) + (is_skill_proficient(skill.key) ? bonus : 0)
+      return modifier >= 0 ? `+${modifier}` : `${modifier}`
+    }
 
     return {
       ABILITIES,
@@ -123,6 +128,7 @@ export function character_viewmodel() {
       on_stat_change,
       on_tab_select,
       is_skill_proficient,
+      format_skill_modifier,
       bonus,
       hp_bar_class
     }
@@ -135,6 +141,14 @@ export function character_viewmodel() {
       set_characters(characters)
     }
     , [set_characters]
+  )
+
+  const load_character = useCallback(
+    async (character_id: string) => {
+      const character = await character_api.get(character_id)
+      set_character(character)
+    }
+    , [set_character]
   )
 
   const create_new_character_for_user = useCallback(
@@ -196,6 +210,7 @@ export function character_viewmodel() {
   return {
     characters,
     load_user_characters,
+    load_character,
     update_hp,
     update_conditions,
     set_characters,

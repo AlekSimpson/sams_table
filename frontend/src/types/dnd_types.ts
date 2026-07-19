@@ -27,6 +27,8 @@ export interface DNDCharacter {
   stats: Record<string, number>
   skill_profs: string[]
   conditions: string[]
+  equipment: string[]
+  notes: string
   created_at: string
 }
 
