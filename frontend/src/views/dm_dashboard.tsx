@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { notification_viewmodel } from '../viewmodels/notification_viewmodel'
 import { DNDCampaign } from '../types/dnd_types'
-import { Badge, Button, Card, Input, Modal, NotificationCenter, Panel, SessionStatusBar, Sidebar, TopBar } from './components'
+import { Badge, Button, Card, Input, Modal, NotificationCenter, Panel, SessionStatusBar, Sidebar, SIDEBAR_COLLAPSED_STORAGE_KEY, TopBar } from './components'
 import CampaignDetailPanel from './campaign_detail_panel'
 import DmCombatControlsPanel from './dm_combat_controls_panel'
 import DmMapPanel from './dm_map_panel'
@@ -52,6 +52,19 @@ export default function DMDashboard() {
   const new_campaign_form = campaign_sidebar_model()
   const [is_new_campaign_modal_open, set_is_new_campaign_modal_open] = useState(false)
   const is_in_session = session !== null
+
+  // Focus mode merges the sidebar-collapse and pane-maximize toggles into one boolean,
+  // driving both the Sidebar and Card's controlled state at once (pre-session shell only).
+  // Persisted under the same key the sidebar previously used standalone, since it's the
+  // same underlying preference.
+  const [is_focus_mode, set_is_focus_mode] = useState(
+    () => localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+  )
+  const on_focus_mode_toggle_press = () => {
+    const next_is_focus_mode = !is_focus_mode
+    set_is_focus_mode(next_is_focus_mode)
+    localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(next_is_focus_mode))
+  }
 
   useEffect(() => {
     load_campaigns()
@@ -130,7 +143,7 @@ export default function DMDashboard() {
         </div>
       ) : (
         <div className="dm-dashboard__body">
-          <Sidebar collapsible>
+          <Sidebar collapsed={is_focus_mode}>
             <div className="dm-dashboard__sidebar-header">
               <span className="section-label">Campaigns</span>
               <Button
@@ -160,7 +173,21 @@ export default function DMDashboard() {
             </nav>
           </Sidebar>
 
-          <Card className="dm-dashboard__panel">
+          <Card
+            maximizable
+            is_maximized={is_focus_mode}
+            className="dm-dashboard__panel"
+          >
+            <div className="pane-toolbar">
+              <button
+                type="button"
+                className="pane-focus-toggle"
+                onClick={on_focus_mode_toggle_press}
+                aria-label={is_focus_mode ? 'Exit focus mode' : 'Enter focus mode'}
+              >
+                {is_focus_mode ? '⤡' : '⤢'}
+              </button>
+            </div>
             <main className="dm-dashboard__content">
               {selected_campaign ? (
                 <CampaignDetailPanel campaign={selected_campaign} />

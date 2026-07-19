@@ -37,4 +37,24 @@ describe('Card', () => {
     expect(container.firstChild).not.toHaveClass('card--maximized')
     expect(screen.getByRole('button', { name: 'Maximize panel' })).toBeInTheDocument()
   })
+
+  describe('controlled mode (is_maximized)', () => {
+    it('reflects a maximized is_maximized prop and renders no internal toggle button', () => {
+      const { container } = render(
+        <Card maximizable is_maximized>Character stats</Card>
+      )
+
+      expect(container.firstChild).toHaveClass('card--maximized')
+      expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    })
+
+    it('reflects a restored is_maximized prop and still renders no internal toggle button', () => {
+      const { container } = render(
+        <Card maximizable is_maximized={false}>Character stats</Card>
+      )
+
+      expect(container.firstChild).not.toHaveClass('card--maximized')
+      expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    })
+  })
 })
