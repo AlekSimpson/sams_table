@@ -1,5 +1,5 @@
 // VIEWMODEL layer — DM dashboard logic. The only DM-dashboard-related import Views need.
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
 import { campaign_api, character_api, map_api, permission_api, session_api } from '../util/rest_client'
@@ -103,13 +103,24 @@ export function dm_dashboard_viewmodel() {
     const on_character_select = (character_id: string) => set_selected_character_id(character_id)
     const on_back_to_characters_press = () => set_selected_character_id(null)
 
-    // Reloading the character list (e.g. on mount, or when the DM switches to a
-    // different campaign) always clears any drilled-into character selection, so a
-    // stale selected_character_id from a previous campaign can never leak through.
+    // Clearing the drilled-into character selection is tied directly to campaign_id
+    // itself — synchronously, on every genuine campaign change — rather than to
+    // load_characters' async resolution. load_characters can be in flight for a while
+    // (network/mock latency), and CampaignDetailPanel's mount effect runs under
+    // StrictMode's dev-mode double effect invocation, so two overlapping
+    // load_characters calls for the SAME campaign_id can be in flight at once.
+    // Clearing selection from inside that async path let a slow/duplicate call wipe
+    // out a selection the user made in the meantime (and, for a real campaign switch,
+    // left a fetch-duration window where the OLD campaign's sheet stayed visible under
+    // the NEW campaign's header). This effect fires immediately on the actual
+    // campaign_id change, independent of any network call.
+    useEffect(() => {
+      set_selected_character_id(null)
+    }, [campaign_id])
+
     const load_characters = useCallback(async () => {
       const loaded_characters = await character_api.list_characters_in_campaign(campaign_id)
       set_characters(loaded_characters)
-      set_selected_character_id(null)
     }, [campaign_id])
 
     const load_maps = useCallback(async () => {

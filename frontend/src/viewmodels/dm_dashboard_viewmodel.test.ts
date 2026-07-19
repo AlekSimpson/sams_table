@@ -110,8 +110,14 @@ function render_campaign_sidebar() {
   return renderHook(() => dm_dashboard_viewmodel().campaign_sidebar_model())
 }
 
+// Accepts an initial campaign_id and, via renderHook's initialProps/rerender
+// mechanism, lets tests simulate a genuine campaign switch by re-rendering with a
+// different campaign_id (existing call sites that never call rerender are unaffected).
 function render_campaign_detail_panel(campaign_id: string) {
-  return renderHook(() => dm_dashboard_viewmodel().campaign_detail_panel_model(campaign_id))
+  return renderHook(
+    ({ campaign_id }: { campaign_id: string }) => dm_dashboard_viewmodel().campaign_detail_panel_model(campaign_id),
+    { initialProps: { campaign_id } }
+  )
 }
 
 function render_session_controls(join_code: string) {
@@ -446,7 +452,13 @@ describe('campaign_detail_panel_model', () => {
       expect(result.current.selected_character_id).toBeNull()
     })
 
-    it('clears any existing selection whenever load_characters is called', async () => {
+    // Regression test: clearing selection used to happen at the end of load_characters,
+    // after its await — so a load_characters call that resolves *after* the user has
+    // since selected a character (e.g. a slow/duplicate call, as React StrictMode's
+    // dev-mode double effect invocation produces) would wipe out that selection out
+    // from under them. Selection-clearing must never be driven by load_characters'
+    // resolution — only by a genuine campaign_id change (see the next test).
+    it('does not clear an existing selection when load_characters resolves', async () => {
       mock_character_api.list_characters_in_campaign.mockResolvedValue([])
       const { result } = render_campaign_detail_panel('campaign-1')
 
@@ -459,7 +471,24 @@ describe('campaign_detail_panel_model', () => {
         await result.current.load_characters()
       })
 
+      expect(result.current.selected_character_id).toBe('character-1')
+    })
+
+    // Selection must be cleared synchronously on a genuine campaign switch, without
+    // waiting on any network call — this test never mocks/resolves
+    // list_characters_in_campaign at all, proving the clear can't be gated on it.
+    it('clears the selection synchronously when campaign_id changes, independent of any API call', () => {
+      const { result, rerender } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_character_select('character-1')
+      })
+      expect(result.current.selected_character_id).toBe('character-1')
+
+      rerender({ campaign_id: 'campaign-2' })
+
       expect(result.current.selected_character_id).toBeNull()
+      expect(mock_character_api.list_characters_in_campaign).not.toHaveBeenCalled()
     })
   })
 
