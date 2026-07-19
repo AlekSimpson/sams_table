@@ -68,19 +68,10 @@ Two user roles:
 
 ```
 sams_table/
-├── backend/          # Go API server
-│   ├── cmd/server/   # main.go — wires everything together
-│   └── internal/
-│       ├── auth/     # JWT signing + middleware
-│       ├── db/
-│       │   ├── migrations/   # Goose SQL files (numbered sequentially)
-│       │   ├── queries/      # DB query functions (one file per domain)
-│       │   └── postgres.go   # pgxpool connect + migration runner
-│       ├── handlers/ # HTTP handlers (one file per domain)
-│       ├── hub/      # WebSocket hub, rooms, events, client
-│       └── models/   # Shared Go types (DB models + API request/response)
+├── backend/          # Deno + vanilla TypeScript API server (blank scaffold, being rewritten from scratch)
+│   └── main.ts       # Deno.serve hello-world entrypoint
 │
-└── frontend/         # React + TypeScript SPA
+└── frontend/         # React + TypeScript SPA (built/run via Deno)
     └── src/
         ├── models/       # Zustand stores — raw state only
         ├── viewmodels/   # Business logic — only layer that calls models + REST
@@ -89,46 +80,9 @@ sams_table/
         └── util/         # rest_client, websockets, dnd_rules helpers
 ```
 
-## 7. Backend Conventions (Go)
+## 7. Backend Conventions (Deno + TypeScript)
 
-**Naming:** This codebase uses `snake_case` for everything — variables, functions, struct fields, and file names. This is intentional and consistent; match it.
-
-**Method receivers:** Named `self` throughout (e.g., `func (self *CharacterHandler) Get(...)`).
-
-**Handler pattern:**
-- Struct holds `database_pool *pgxpool.Pool` and `webtoken_service *auth.JWTService`
-- Constructor: `New_X_Handler(pool, service) *XHandler`
-- HTTP methods: `(response_writer http.ResponseWriter, request *http.Request)`
-- Use shared `write_json(w, status, data)` and `write_error(w, status, msg)` helpers
-
-**DB query layer (`internal/db/queries/`):**
-- Standalone functions — no ORM, raw pgx queries
-- Signature: `func Verb_Thing(ctx context.Context, pool *pgxpool.Pool, ...) (Result, error)`
-- One file per domain: `users.go`, `characters.go`, `campaigns.go`, `maps.go`, etc.
-
-**Migrations:**
-- Goose SQL files in `internal/db/migrations/`, numbered `NNN_description.sql`
-- Always include `-- +goose Up` and `-- +goose Down` sections
-- Run automatically on server startup via `db.Run_Migrations()`
-
-**WebSocket (hub package):**
-- Single `Hub` goroutine owns all room state; communicate via channels only
-- Events defined in `hub/events.go` as `EventType` string constants + typed payload structs
-- All messages use `WebsocketEnvelope{Type, Campaign_ID, Sender_ID, Payload, Timestamp}`
-- DM-only event enforcement happens server-side in `hub.go` via `DM_Only_Events` map
-- New event types: add the constant + payload struct to `events.go`, add to `DM_Only_Events` if restricted
-
-**Auth:**
-- JWT passed as `Authorization: Bearer <token>` header for REST
-- JWT passed as `?token=` query param for WebSocket upgrades
-- Protected routes grouped under `auth.Middleware_Check_Token` in the router
-
-**Key dependencies:**
-- Router: `go-chi/chi/v5`
-- DB driver: `jackc/pgx/v5` (pgxpool)
-- Migrations: `pressly/goose/v3`
-- Auth: `golang-jwt/jwt/v5`
-- WebSocket: `gorilla/websocket`
+The backend is currently a blank `Deno.serve` hello-world scaffold (`backend/main.ts`) pending a full rewrite. No conventions are established yet — this section will be filled in once the rewrite defines them.
 
 ## 8. Frontend Conventions (TypeScript/React)
 
@@ -152,7 +106,7 @@ sams_table/
 **`todo_views/`:** Work-in-progress views not yet wired into routing. These are stubs — don't treat them as reference for completed patterns.
 
 **Key dependencies:**
-- Build: Vite + TypeScript
+- Build: Vite (run via Deno) + TypeScript
 - State: Zustand
 - Routing: react-router-dom v6
 - 3D: three.js, @react-three/fiber, @react-three/drei
@@ -163,14 +117,14 @@ sams_table/
 # Full stack via Docker Compose (requires .env with DB_PASSWORD and JWT_SECRET)
 docker compose up
 
-# Backend only (requires DATABASE_URL and JWT_SECRET in .env)
-cd backend && go run ./cmd/server
+# Backend only
+cd backend && deno task dev
 
 # Frontend dev server (proxies /api to localhost:8080 via vite config)
-cd frontend && npm install && npm run dev
+cd frontend && deno install && deno task dev
 
 # Type-check frontend without building
-cd frontend && npm run typecheck
+cd frontend && deno task typecheck
 ```
 
 Required `.env` variables at repo root:

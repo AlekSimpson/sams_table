@@ -17,16 +17,6 @@ services:
 
   backend:
     build: ./backend
-    environment:
-      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/sams_table
-      JWT_SECRET: ${JWT_SECRET}
-      PORT: 8080
-      ASSET_STORAGE_PATH: /app/uploads
-    volumes:
-      - uploads:/app/uploads
-    depends_on:
-      db:
-        condition: service_healthy
     ports:
       - "8080:8080"
 
@@ -39,4 +29,3 @@ services:
 
 volumes:
   pgdata:
-  uploads:

@@ -1,13 +1,8 @@
-FROM golang:1.25-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server ./cmd/server
+FROM denoland/deno:alpine
 
-FROM alpine:3.19
-RUN apk add --no-cache ca-certificates
 WORKDIR /app
-COPY --from=builder /app/server .
+COPY . .
+RUN deno cache main.ts
+
 EXPOSE 8080
-CMD ["./server"]
+CMD ["run", "--allow-net", "main.ts"]
