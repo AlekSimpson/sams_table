@@ -22,15 +22,16 @@ test('DM can run a full session: campaign, map, session, tile, combat controls',
   await expect(page).toHaveURL('/dm')
   await expect(page.getByText('DM Dashboard', { exact: true })).toBeVisible()
 
-  // --- Create a campaign ---
+  // --- Create a campaign via the sidebar's "+ New Campaign" modal ---
+  await page.getByRole('button', { name: 'New Campaign' }).click()
   await page.getByLabel('Name').fill(CAMPAIGN_NAME)
   await page.getByRole('button', { name: 'Create Campaign' }).click()
 
-  const campaign_card = page.getByText(CAMPAIGN_NAME, { exact: true })
-  await expect(campaign_card).toBeVisible()
+  const campaign_sidebar_item = page.locator('.sidebar').getByText(CAMPAIGN_NAME, { exact: true })
+  await expect(campaign_sidebar_item).toBeVisible()
 
   // --- Select it, then create a map with explicit grid dimensions ---
-  await campaign_card.click()
+  await campaign_sidebar_item.click()
   const campaign_detail_panel = page.locator('.campaign-detail-panel')
   await expect(campaign_detail_panel.getByText(CAMPAIGN_NAME, { exact: true })).toBeVisible()
 
@@ -93,7 +94,7 @@ test('DM can run a full session: campaign, map, session, tile, combat controls',
   await page.getByRole('button', { name: 'End Session' }).click()
   await expect(page.getByText('Join Code', { exact: true })).not.toBeVisible()
   await expect(page.getByRole('button', { name: 'Start Session' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Campaigns', exact: true })).toBeVisible()
+  await expect(campaign_sidebar_item).toBeVisible()
 
   expect(page_errors).toEqual([])
 })

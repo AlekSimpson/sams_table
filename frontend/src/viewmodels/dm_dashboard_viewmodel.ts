@@ -3,8 +3,8 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
 import { campaign_api, character_api, map_api, permission_api, session_api } from '../util/rest_client'
-import { CampaignDetailTab, DmDashboardTab } from '../types/app_types'
-import { CampaignPermissionEntry, DNDCampaign, DNDCharacter } from '../types/dnd_types'
+import { CampaignDetailTab } from '../types/app_types'
+import { CampaignPermissionEntry, DNDCharacter } from '../types/dnd_types'
 import { GameMap } from '../types/game_types'
 
 export function dm_dashboard_viewmodel() {
@@ -46,8 +46,6 @@ export function dm_dashboard_viewmodel() {
     [set_selected_campaign]
   )
 
-  const deselect_campaign = useCallback(() => set_selected_campaign(null), [set_selected_campaign])
-
   const start_session = useCallback(async () => {
     const current_campaign = dm_dashboard_model.getState().selected_campaign
     if (!current_campaign) return
@@ -63,22 +61,10 @@ export function dm_dashboard_viewmodel() {
     clear_joined_players()
   }, [set_session, clear_joined_players])
 
-  function dm_dashboard_shell_model() {
-    const [current_tab, set_current_tab] = useState<DmDashboardTab>('campaigns')
-
-    const on_campaigns_tab_press = () => set_current_tab('campaigns')
-    const on_maps_tab_press = () => set_current_tab('maps')
-    const on_characters_tab_press = () => set_current_tab('characters')
-
-    return {
-      current_tab,
-      on_campaigns_tab_press,
-      on_maps_tab_press,
-      on_characters_tab_press,
-    }
-  }
-
-  function campaign_list_panel_model() {
+  /** Sidebar's campaign folder list: "+ New Campaign" create-form state (see dm_dashboard.tsx's
+   *  Modal), plus the campaigns themselves and selection come straight off this hook's own
+   *  `campaigns`/`selected_campaign`/`select_campaign`. */
+  function campaign_sidebar_model() {
     const [name, set_name] = useState('')
     const [description, set_description] = useState('')
 
@@ -92,21 +78,13 @@ export function dm_dashboard_viewmodel() {
       set_description('')
     }
 
-    const on_back_press = () => deselect_campaign()
-
     return {
       name,
       description,
       on_name_change,
       on_description_change,
       on_create_press,
-      on_back_press,
     }
-  }
-
-  function campaign_card_model(campaign: DNDCampaign) {
-    const on_card_click = () => select_campaign(campaign.id)
-    return { on_card_click }
   }
 
   function campaign_detail_panel_model(campaign_id: string) {
@@ -271,9 +249,7 @@ export function dm_dashboard_viewmodel() {
     set_active_map,
     add_joined_player,
     remove_joined_player,
-    dm_dashboard_shell_model,
-    campaign_list_panel_model,
-    campaign_card_model,
+    campaign_sidebar_model,
     campaign_detail_panel_model,
     session_controls_model,
     map_selector_model,

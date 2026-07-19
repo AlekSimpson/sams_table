@@ -1,20 +1,66 @@
 // VIEW layer — DM dashboard shell (pre-session sidebar nav vs. in-session map + control sidebar)
+import { useEffect, useState } from 'react'
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { notification_viewmodel } from '../viewmodels/notification_viewmodel'
-import { Badge, Button, Card, NotificationCenter, Panel, SessionStatusBar, Sidebar, TopBar } from './components'
-import CampaignListPanel from './campaign_list_panel'
+import { DNDCampaign } from '../types/dnd_types'
+import { Badge, Button, Card, Input, Modal, NotificationCenter, Panel, SessionStatusBar, Sidebar, TopBar } from './components'
+import CampaignDetailPanel from './campaign_detail_panel'
 import DmCombatControlsPanel from './dm_combat_controls_panel'
 import DmMapPanel from './dm_map_panel'
 import DmPermissionPanel from './dm_permission_panel'
 import '../../styles/dm_dashboard.css'
 
+interface CampaignSidebarItemProps {
+  campaign: DNDCampaign
+  is_selected: boolean
+  on_select: () => void
+}
+
+function CampaignSidebarItem({ campaign, is_selected, on_select }: CampaignSidebarItemProps) {
+  return (
+    <div
+      className={`campaign-sidebar-item${is_selected ? ' campaign-sidebar-item--active' : ''}`}
+      onClick={on_select}
+      role="button"
+      tabIndex={0}
+    >
+      <span className="campaign-sidebar-item__icon" aria-hidden="true">📁</span>
+      <div className="campaign-sidebar-item__info">
+        <div className="campaign-sidebar-item__name">{campaign.name}</div>
+        <div className="campaign-sidebar-item__description">
+          {campaign.description || 'No description set'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function DMDashboard() {
-  const { session, selected_campaign, joined_players, end_session, dm_dashboard_shell_model, session_controls_model } =
-    dm_dashboard_viewmodel()
+  const {
+    session,
+    selected_campaign,
+    joined_players,
+    campaigns,
+    load_campaigns,
+    select_campaign,
+    end_session,
+    campaign_sidebar_model,
+    session_controls_model,
+  } = dm_dashboard_viewmodel()
   const { notifications, remove_notification } = notification_viewmodel()
-  const model = dm_dashboard_shell_model()
   const session_controls = session_controls_model(session?.join_code ?? '')
+  const new_campaign_form = campaign_sidebar_model()
+  const [is_new_campaign_modal_open, set_is_new_campaign_modal_open] = useState(false)
   const is_in_session = session !== null
+
+  useEffect(() => {
+    load_campaigns()
+  }, [])
+
+  const on_create_campaign_press = () => {
+    new_campaign_form.on_create_press()
+    set_is_new_campaign_modal_open(false)
+  }
 
   return (
     <div className="dm-dashboard">
@@ -85,47 +131,86 @@ export default function DMDashboard() {
       ) : (
         <div className="dm-dashboard__body">
           <Sidebar collapsible>
-            <nav className="dm-dashboard__nav">
+            <div className="dm-dashboard__sidebar-header">
+              <span className="section-label">Campaigns</span>
               <Button
-                variant={model.current_tab === 'campaigns' ? 'secondary' : 'ghost'}
+                variant="ghost"
                 size="small"
-                full_width
-                onClick={model.on_campaigns_tab_press}
+                onClick={() => set_is_new_campaign_modal_open(true)}
+                aria-label="New Campaign"
               >
-                Campaigns
+                +
               </Button>
-              <Button
-                variant={model.current_tab === 'maps' ? 'secondary' : 'ghost'}
-                size="small"
-                full_width
-                onClick={model.on_maps_tab_press}
-              >
-                Maps
-              </Button>
-              <Button
-                variant={model.current_tab === 'characters' ? 'secondary' : 'ghost'}
-                size="small"
-                full_width
-                onClick={model.on_characters_tab_press}
-              >
-                Characters
-              </Button>
+            </div>
+            <nav className="dm-dashboard__campaign-list">
+              {campaigns.length === 0 ? (
+                <div className="dm-dashboard__campaign-list-empty">
+                  No campaigns yet — create one to get started.
+                </div>
+              ) : (
+                campaigns.map((campaign) => (
+                  <CampaignSidebarItem
+                    key={campaign.id}
+                    campaign={campaign}
+                    is_selected={campaign.id === selected_campaign?.id}
+                    on_select={() => select_campaign(campaign.id)}
+                  />
+                ))
+              )}
             </nav>
           </Sidebar>
 
           <Card className="dm-dashboard__panel">
             <main className="dm-dashboard__content">
-              {model.current_tab === 'campaigns' && <CampaignListPanel />}
-              {model.current_tab === 'maps' && (
-                <div className="scaffold-placeholder">Maps — coming soon</div>
-              )}
-              {model.current_tab === 'characters' && (
-                <div className="scaffold-placeholder">Characters — coming soon</div>
+              {selected_campaign ? (
+                <CampaignDetailPanel campaign={selected_campaign} />
+              ) : (
+                <div className="scaffold-placeholder">
+                  Select a campaign from the sidebar, or create one to get started.
+                </div>
               )}
             </main>
           </Card>
         </div>
       )}
+
+      <Modal
+        is_open={is_new_campaign_modal_open}
+        onClose={() => set_is_new_campaign_modal_open(false)}
+        title="New Campaign"
+      >
+        <div className="dm-dashboard__new-campaign-form">
+          <Input
+            id="new-campaign-name-input"
+            label="Name"
+            type="text"
+            value={new_campaign_form.name}
+            onChange={new_campaign_form.on_name_change}
+            placeholder="Campaign name"
+          />
+
+          <label className="input-field" htmlFor="new-campaign-description-input">
+            <span className="input-field__label">Description</span>
+            <textarea
+              id="new-campaign-description-input"
+              className="input dm-dashboard__description-input"
+              value={new_campaign_form.description}
+              onChange={new_campaign_form.on_description_change}
+              placeholder="What's this campaign about?"
+              rows={3}
+            />
+          </label>
+
+          <Button
+            variant="primary"
+            size="small"
+            onClick={on_create_campaign_press}
+            disabled={!new_campaign_form.name.trim()}
+          >
+            Create Campaign
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
