@@ -5,7 +5,16 @@ import { AuthResponse, JWTClaims, SessionJoinResponse, SessionStartResponse } fr
 import { CampaignPermissionEntry, DNDCampaign, DNDCharacter, DNDClass, DNDRace } from '../../types/dnd_types'
 import { GameMap, MapTile, Token, UploadedAsset } from '../../types/game_types'
 import { resolve_after_latency } from './mock_config'
-import { DEMO_CAMPAIGN_ID, DEMO_DM_USER_ID, encode_mock_jwt, generate_join_code, get_or_create_user, mock_store } from './fixtures'
+import {
+  DEMO_CAMPAIGN_ID,
+  DEMO_DM_USER_ID,
+  encode_mock_jwt,
+  generate_join_code,
+  get_or_create_user,
+  mock_store,
+  read_shared_join_codes,
+  write_shared_join_codes,
+} from './fixtures'
 
 function current_user_id(): string {
   return session_model.getState().user?.id ?? DEMO_DM_USER_ID
@@ -196,13 +205,15 @@ export const mock_session_api = {
     resolve_after_latency((): SessionStartResponse => {
       const join_code = generate_join_code()
       const active_map = mock_store.maps.find((map) => map.campaign_id === campaign_id)
-      mock_store.join_codes[join_code] = { campaign_id, active_map_id: active_map?.id ?? null }
+      const session_entry = { campaign_id, active_map_id: active_map?.id ?? null }
+      mock_store.join_codes[join_code] = session_entry
+      write_shared_join_codes({ ...read_shared_join_codes(), [join_code]: session_entry })
       return { join_code }
     }),
 
   join: (code: string) =>
     resolve_after_latency((): SessionJoinResponse => {
-      const session = mock_store.join_codes[code]
+      const session = mock_store.join_codes[code] ?? read_shared_join_codes()[code]
       if (!session) throw new Error(`Invalid join code: ${code}`)
       return session
     }),
@@ -214,5 +225,10 @@ export const mock_session_api = {
       for (const code of Object.keys(mock_store.join_codes)) {
         if (mock_store.join_codes[code].campaign_id === campaign_id) delete mock_store.join_codes[code]
       }
+      const shared_join_codes = read_shared_join_codes()
+      for (const code of Object.keys(shared_join_codes)) {
+        if (shared_join_codes[code].campaign_id === campaign_id) delete shared_join_codes[code]
+      }
+      write_shared_join_codes(shared_join_codes)
     }),
 }

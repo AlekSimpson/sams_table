@@ -10,7 +10,7 @@ export type Tab = 'combat' | 'spells' | 'equipment' | 'features' | 'notes'
 
 export type PlayerDashboardParameters = { character_id: string }
 
-export type DashboardTab = 'sheet' | 'map'
+export type DashboardTab = 'sheet' | 'map' | 'dice'
 
 export type DmDashboardTab = 'campaigns' | 'maps' | 'characters'
 
