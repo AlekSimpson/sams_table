@@ -1,0 +1,23 @@
+.player-dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.player-dashboard__nav {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.player-dashboard__campaign-input {
+  width: 140px;
+  min-height: 36px;
+}
+
+.player-dashboard__content {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}

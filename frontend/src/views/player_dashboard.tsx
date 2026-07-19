@@ -3,7 +3,8 @@ import { character_viewmodel } from "../viewmodels/character_viewmodel"
 import { useParams } from 'react-router-dom'
 import CharacterSheet from './character_sheet'
 import { PlayerDashboardParameters } from "../types/app_types"
-import '../../styles/PlayerDashboard.css'
+import { Button, Input, TopBar } from './components'
+import '../../styles/player_dashboard.css'
 
 export default function PlayerDashboard() {
   const { character_id } = useParams<PlayerDashboardParameters>()
@@ -15,25 +16,27 @@ export default function PlayerDashboard() {
 
   return (
     <div className="player-dashboard">
-      <header className="player-dashboard__header">
-        
-        <span className="player-dashboard__character-name">{character.name || 'Character'}</span>
-        <input className="player-dashboard__campaign-input" placeholder="Campaign ID" />
+      <TopBar
+        title={character.name || 'Character'}
+        right={<Input className="player-dashboard__campaign-input" placeholder="Campaign ID" />}
+      >
         <nav className="player-dashboard__nav">
-          <button
-            className={`player-dashboard__nav-btn${model.current_tab === 'sheet' ? ' player-dashboard__nav-btn--active' : ''}`}
+          <Button
+            variant={model.current_tab === 'sheet' ? 'secondary' : 'ghost'}
+            size="small"
             onClick={model.on_sheet_tab_press}
           >
             Character Sheet
-          </button>
-          <button
-            className={`player-dashboard__nav-btn${model.current_tab === 'map' ? ' player-dashboard__nav-btn--active' : ''}`}
+          </Button>
+          <Button
+            variant={model.current_tab === 'map' ? 'secondary' : 'ghost'}
+            size="small"
             onClick={model.on_map_tab_press}
           >
             Live Map
-          </button>
+          </Button>
         </nav>
-      </header>
+      </TopBar>
 
       <main className="player-dashboard__content">
         {model.current_tab === 'sheet' && <CharacterSheet character_id={character_id} />}

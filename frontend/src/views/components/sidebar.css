@@ -1,0 +1,13 @@
+.sidebar {
+  flex-shrink: 0;
+  width: 280px;
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-4);
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(var(--backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur));
+}
+
+.sidebar--left { border-right: 1px solid var(--color-border); }
+.sidebar--right { border-left: 1px solid var(--color-border); }
