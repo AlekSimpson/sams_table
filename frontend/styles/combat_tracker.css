@@ -41,3 +41,39 @@
   display: flex;
   gap: var(--space-1);
 }
+
+.combat-tracker__initiative-input {
+  width: 64px;
+  flex: none;
+}
+
+.combat-tracker__npc-form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.combat-tracker__npc-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+
+.combat-tracker__npc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.combat-tracker__npc-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.combat-tracker__submit-initiative {
+  margin-top: var(--space-4);
+}

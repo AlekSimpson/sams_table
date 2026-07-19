@@ -20,11 +20,12 @@ export default function InitiativeOrder({ entries, activeTurnIndex, onAdvanceTur
           >
             <Badge variant={index === activeTurnIndex ? 'info' : 'neutral'}>{entry.initiative}</Badge>
             <span className="initiative-order__name">{entry.name}</span>
+            {entry.is_npc && <Badge variant="neutral">NPC</Badge>}
           </div>
         ))}
       </div>
       <Button variant="primary" size="small" onClick={onAdvanceTurn}>Next Turn</Button>
-      {/* TODO: DM-only controls for reordering, adding NPCs */}
+      {/* TODO: DM-only controls for reordering */}
     </div>
   )
 }
