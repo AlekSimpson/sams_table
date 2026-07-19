@@ -137,21 +137,21 @@ test('Unauthenticated access to DM-only or player-only routes redirects to /logi
 //
 // NOTE on feasibility (read before changing this test): the ticket's literal scenario —
 // a player without can_move_tokens attempts to drag their token and it doesn't move —
-// is not reachable through genuine browser interaction in the current app. Two
-// independent, pre-existing gaps block it, verified by reading the source directly:
+// is still not exercised end-to-end here, verified by reading the source directly:
 //
-//   1. There is no player-facing map/token view at all. player_dashboard.tsx's "Live
-//      Map" tab renders a static placeholder ("Live Map — coming soon"); MapScene (and
-//      the TokenLayer component that contains the actual drag/permission-gating logic,
-//      todo_views/map_view/token_layer.tsx's can_move_token()) is only ever mounted by
-//      DM-only routes (dm_map_panel.tsx, todo_views/MapBuilder.tsx). No route mounts it
-//      for a role: 'player' session, so a player can never even attempt this drag.
+//   1. (Resolved by ST-115) player_dashboard.tsx's "Live Map" tab now mounts the real
+//      MapScene (in view mode) via a player route, so TokenLayer's drag/permission-gating
+//      logic (todo_views/map_view/token_layer.tsx's can_move_token()) is reachable for a
+//      role: 'player' session. Simulating a genuine drag-and-drop against the Three.js
+//      canvas (pointer-down/move/up at specific world-to-screen coordinates) plus this
+//      test's existing cross-page player_joined workaround was judged out of scope for
+//      that ticket; still an opportunity for follow-up coverage.
 //
-//   2. Even setting that aside, can_move_token() short-circuits to `true` whenever
-//      role === 'dm' (see token_layer.tsx) — so the DM's own map view can't exhibit the
-//      "denied" behavior for any user either, and forcing role to 'player' client-side
-//      while mounted on a DM route would immediately trip RequireDM's redirect guard
-//      (App.tsx), unmounting the map before any interaction could occur.
+//   2. can_move_token() short-circuits to `true` whenever role === 'dm' (see
+//      token_layer.tsx) — so the DM's own map view can't exhibit the "denied" behavior
+//      for any user either, and forcing role to 'player' client-side while mounted on a
+//      DM route would immediately trip RequireDM's redirect guard (App.tsx), unmounting
+//      the map before any interaction could occur.
 //
 // So this test instead verifies the half of the permission system that IS genuinely
 // reachable end-to-end: the DM's Permissions panel (dm_permission_panel.tsx) toggling

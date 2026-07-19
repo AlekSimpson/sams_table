@@ -75,6 +75,12 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   // to the Live Map tab (unmounting CharacterSheet) and back (remounting it, which
   // re-fetches the character from the mock backend) ---
   await page.getByRole('button', { name: 'Live Map', exact: true }).click()
+
+  // --- The Live Map tab renders the real, live MapScene (view mode) now that the player
+  // has joined a session with an active map — not the old static placeholder ---
+  await expect(page.locator('.player-dashboard__content canvas')).toBeVisible()
+  await expect(page.getByText('Live Map — coming soon')).toHaveCount(0)
+
   await page.getByRole('button', { name: 'Character Sheet', exact: true }).click()
   // The character store (character_model.ts) isn't reset on unmount, so the just-edited
   // value is still showing immediately after remount regardless of whether it actually
