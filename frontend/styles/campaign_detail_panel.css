@@ -69,7 +69,7 @@
 }
 
 .campaign-detail-panel__back-button {
-  align-self: flex-start;
+  margin-left: auto;
 }
 
 .campaign-detail-panel__character-sheet-body {
