@@ -1,10 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 import TopBar from './top_bar'
-
-afterEach(() => {
-  cleanup()
-})
 
 describe('TopBar', () => {
   it('renders the title', () => {

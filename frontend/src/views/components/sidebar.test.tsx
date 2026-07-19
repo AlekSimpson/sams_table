@@ -1,15 +1,11 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
 import Sidebar from './sidebar'
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'sams-table-sidebar-collapsed'
 
 beforeEach(() => {
   localStorage.clear()
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 describe('Sidebar', () => {
