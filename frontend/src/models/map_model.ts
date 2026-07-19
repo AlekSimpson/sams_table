@@ -24,6 +24,7 @@ interface MapActions {
   place_tile: (tile: MapTile) => void
   remove_tile: (tileID: string) => void
   move_token: (tokenID: string, gridX: number, gridY: number) => void
+  set_tokens: (tokens: Token[]) => void
   sync_tiles: (tiles: MapTile[]) => void
   set_tiles_loading: (loading: boolean) => void
   reset: () => void
@@ -64,6 +65,8 @@ export const map_model = create<MapModel>()((set) => ({
         t.id === tokenID ? { ...t, grid_x: gridX, grid_y: gridY } : t
       ),
     })),
+
+  set_tokens: (tokens) => set({ tokens }),
 
   sync_tiles: (tiles) => set({ tiles }),
 

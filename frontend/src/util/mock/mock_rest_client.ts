@@ -3,7 +3,7 @@
 import { session_model } from '../../models/session_model'
 import { AuthResponse, JWTClaims, SessionJoinResponse, SessionStartResponse } from '../../types/app_types'
 import { CampaignPermissionEntry, DNDCampaign, DNDCharacter, DNDClass, DNDRace } from '../../types/dnd_types'
-import { GameMap, MapTile, UploadedAsset } from '../../types/game_types'
+import { GameMap, MapTile, Token, UploadedAsset } from '../../types/game_types'
 import { resolve_after_latency } from './mock_config'
 import { DEMO_CAMPAIGN_ID, DEMO_DM_USER_ID, encode_mock_jwt, generate_join_code, get_or_create_user, mock_store } from './fixtures'
 
@@ -147,6 +147,11 @@ export const mock_map_api = {
     resolve_after_latency(() => {
       mock_store.map_tiles = [...mock_store.map_tiles.filter((tile) => tile.map_id !== map_id), ...tiles]
     }),
+
+  // Token isn't map-scoped (see types/game_types.ts) — the demo fixtures only ever
+  // populate one map's worth of tokens, so map_id is accepted for API symmetry with
+  // getTiles but not used to filter here.
+  getTokens: (_map_id: string) => resolve_after_latency((): Token[] => mock_store.tokens.slice()),
 }
 
 export const mock_asset_api = {
