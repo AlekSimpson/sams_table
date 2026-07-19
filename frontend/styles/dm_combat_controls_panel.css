@@ -1,0 +1,92 @@
+.dm-combat-controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dm-combat-controls-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dm-combat-controls-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dm-combat-controls-panel__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.dm-combat-controls-panel__row--conditions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+
+.dm-combat-controls-panel__character-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.dm-combat-controls-panel__initiative-input {
+  width: 56px;
+  flex: none;
+}
+
+.dm-combat-controls-panel__hp-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.dm-combat-controls-panel__hp-input {
+  width: 48px;
+  flex: none;
+  text-align: center;
+}
+
+.dm-combat-controls-panel__hp-max {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.dm-combat-controls-panel__condition-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.dm-combat-controls-panel__npc-form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dm-combat-controls-panel__npc-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dm-combat-controls-panel__npc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.dm-combat-controls-panel__npc-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.dm-combat-controls-panel__publish-button {
+  margin-top: var(--space-1);
+}
