@@ -12,6 +12,8 @@ export type PlayerDashboardParameters = { character_id: string }
 
 export type DashboardTab = 'sheet' | 'map'
 
+export type DmDashboardTab = 'campaigns' | 'maps' | 'characters'
+
 export interface CharacterSheetProps {
   character_id: string
 }
