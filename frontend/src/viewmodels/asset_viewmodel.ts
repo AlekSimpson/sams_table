@@ -28,10 +28,8 @@ export function asset_viewmodel() {
         if (options?.gridDepth != null) formData.append('grid_depth', String(options.gridDepth))
         if (options?.scaleFactor != null) formData.append('scale_factor', String(options.scaleFactor))
 
-        // TODO: const asset = await assetApi.upload(formData); setUploadedAssets(prev => [...prev, asset])
-        const _asset = await asset_api.upload(formData)
-        void set_uploaded_assets
-        throw new Error('not implemented')
+        const asset = await asset_api.upload(formData)
+        set_uploaded_assets((prev) => [...prev, asset])
       } catch (err) {
         set_upload_error(err instanceof Error ? err.message : 'Upload failed')
         throw err

@@ -4,6 +4,8 @@ import { session_model } from '../models/session_model'
 import { map_model } from '../models/map_model'
 import { character_model } from '../models/character_model'
 import { WSEnvelope, WSEventType } from '../types/websocket_types'
+import { MOCK_MODE_ENABLED } from './mock/mock_config'
+import { MockWebSocket } from './mock/mock_websocket'
 import { 
   HPUpdatePayload, 
   MapActivatedPayload, 
@@ -78,7 +80,11 @@ export function websocket_hook() {
     if (!token) return
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws?token=${token}`)
+    const websocket_url = `${protocol}//${window.location.host}/ws?token=${token}`
+    // MockWebSocket implements the subset of the WebSocket interface used below
+    // (onopen/onclose/onerror/onmessage/send/close/readyState); the cast keeps the
+    // mock swap contained to this one line. See ./mock/mock_websocket.ts.
+    const ws = (MOCK_MODE_ENABLED ? new MockWebSocket(websocket_url) : new WebSocket(websocket_url)) as unknown as WebSocket
     websocket_reference.current = ws
 
     ws.onopen = () => console.log('ws: connected')

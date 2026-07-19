@@ -6,6 +6,12 @@ export interface DNDCampaign {
   created_at: string
 }
 
+export interface CampaignPermissionEntry {
+  user_id:               string
+  can_edit_map:          boolean
+  can_view_hidden_tiles: boolean
+}
+
 export interface DNDCharacter {
   id: string
   campaign_id: string

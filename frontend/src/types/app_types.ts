@@ -29,3 +29,12 @@ export interface AuthResponse {
   token: string
   user: User
 }
+
+export interface SessionStartResponse {
+  join_code: string
+}
+
+export interface SessionJoinResponse {
+  campaign_id: string
+  active_map_id: string | null
+}
