@@ -78,7 +78,7 @@ export default function DmCombatControlsPanel({ campaign_id }: DmCombatControlsP
   useEffect(() => {
     if (!campaign_id) return
     load_campaign_characters(campaign_id)
-  }, [campaign_id])
+  }, [campaign_id, load_campaign_characters])
 
   const character_list = Object.values(characters)
 

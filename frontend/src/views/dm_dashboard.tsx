@@ -25,10 +25,6 @@ export default function DMDashboard() {
           <Sidebar side="right" collapsible>
             <div className="dm-dashboard__control-sections">
               <Panel>
-                <span className="section-label">Initiative</span>
-                <div className="scaffold-placeholder">Initiative — coming soon</div>
-              </Panel>
-              <Panel>
                 <span className="section-label">Combat Controls</span>
                 {selected_campaign ? (
                   <DmCombatControlsPanel campaign_id={selected_campaign.id} />
