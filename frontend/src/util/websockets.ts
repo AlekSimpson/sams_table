@@ -28,10 +28,23 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
     }
     case 'map_activated': {
       const p = envelope.payload as MapActivatedPayload
+      // This payload is a full, authoritative tile snapshot for the newly
+      // activated map, so it always applies immediately — it also supersedes
+      // any in-flight REST load_map for a different map (see map_viewmodel.ts's
+      // load_map, which checks active_map_id before applying its own response)
+      // and clears tiles_loading so a stale REST call finishing later doesn't
+      // leave the UI stuck showing a loading state.
       map_state.set_active_map(p.map_id, p.tiles)
+      map_state.set_tiles_loading(false)
       break
     }
     case 'map_tile_placed': {
+      // Ignore tile events that arrive while the initial REST load for the
+      // active map is still in flight: load_map's response will already
+      // reflect the latest persisted tiles once it resolves, so applying this
+      // event now would just be clobbered (or duplicate a pending optimistic
+      // update) when that response lands.
+      if (map_state.tiles_loading) break
       const p = envelope.payload as MapTilePlacedPayload
       // Shape payload into a MapTile and place it
       map_state.place_tile({
@@ -47,6 +60,7 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
       break
     }
     case 'map_tile_removed': {
+      if (map_state.tiles_loading) break
       const p = envelope.payload as MapTileRemovedPayload
       map_state.remove_tile(p.tile_id)
       break

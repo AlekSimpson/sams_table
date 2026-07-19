@@ -7,9 +7,8 @@ import { MapTile } from '../types/game_types'
 import { MapActivatedPayload } from '../types/websocket_types'
 
 export function map_viewmodel() {
-  const { tiles, tokens, mode, selected_asset_id, active_map_id, set_mode, set_selected_asset, place_tile, remove_tile, sync_tiles } = map_model()
+  const { tiles, tokens, mode, selected_asset_id, active_map_id, tiles_loading, set_mode, set_selected_asset, place_tile, remove_tile, set_active_map, set_tiles_loading } = map_model()
   const { send } = websocket_hook()
-  const [tiles_loading, set_tiles_loading] = useState(false)
   const [tiles_error, set_tiles_error] = useState<string | null>(null)
 
   /** DM: broadcast map_activated, triggering a full tile sync for all clients. */
@@ -57,14 +56,21 @@ export function map_viewmodel() {
       set_tiles_error(null)
       try {
         const tiles = await map_api.getTiles(map_ID)
-        sync_tiles(tiles)
+        // A map_activated WS event may have switched the active map while this
+        // request was in flight; if so, this response is stale — drop it instead
+        // of clobbering the newer map's tiles. See websockets.ts's map_activated
+        // handling for the other half of this race.
+        const current_active_map_id = map_model.getState().active_map_id
+        if (current_active_map_id === null || current_active_map_id === map_ID) {
+          set_active_map(map_ID, tiles)
+        }
       } catch (err) {
         set_tiles_error(err instanceof Error ? err.message : 'Failed to load map tiles')
       } finally {
         set_tiles_loading(false)
       }
     },
-    [sync_tiles]
+    [set_active_map, set_tiles_loading]
   )
 
   return {
