@@ -73,6 +73,7 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
     case 'dice_roll_result': {
       const p = envelope.payload as DiceRollResultPayload
       combat_state.set_last_dice_roll_result(p)
+      combat_state.add_dice_roll_result(p)
       break
     }
     case 'visibility_toggle':
