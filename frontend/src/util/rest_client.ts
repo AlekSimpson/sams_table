@@ -1,7 +1,7 @@
 // MODEL layer — typed REST wrappers. Used by viewmodels, not Views directly.
 import { session_model } from '../models/session_model'
 import { AuthResponse, SessionJoinResponse, SessionStartResponse } from '../types/app_types'
-import { GameMap, MapTile, UploadedAsset } from '../types/game_types'
+import { GameMap, MapTile, Token, UploadedAsset } from '../types/game_types'
 import { CampaignPermissionEntry, DNDCampaign, DNDCharacter, DNDClass, DNDRace } from '../types/dnd_types'
 import { MOCK_MODE_ENABLED } from './mock/mock_config'
 import {
@@ -137,6 +137,9 @@ export const map_api = {
       () => request<void>(`/maps/${map_id}/tiles`, { method: 'PUT', body: JSON.stringify(tiles) }),
       () => mock_map_api.putTiles(map_id, tiles)
     ),
+
+  getTokens: (map_id: string) =>
+    resolve(() => request<Token[]>(`/maps/${map_id}/tokens`), () => mock_map_api.getTokens(map_id)),
 }
 
 export const asset_api = {
