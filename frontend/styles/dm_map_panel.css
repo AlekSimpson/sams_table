@@ -18,6 +18,13 @@
   max-width: 240px;
 }
 
+/* Player's read-only equivalent of the DM's map-select dropdown — see player_map_panel.tsx. */
+.dm-map-panel__map-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
 .dm-map-panel__canvas {
   position: relative;
   flex: 1;

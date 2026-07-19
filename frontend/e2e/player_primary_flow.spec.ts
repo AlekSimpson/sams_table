@@ -82,6 +82,15 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   await expect(page.locator('.player-dashboard__content canvas')).toBeVisible()
   await expect(page.getByText('Live Map — coming soon')).toHaveCount(0)
 
+  // --- ST-134: the Live Map tab now has the same surrounding chrome as the DM's map
+  // view (dm_map_panel.tsx) — a Panel header above the canvas — showing the active
+  // map's name read-only (no map-select dropdown, no "hide from players" toggle, both
+  // DM-only) ---
+  await expect(page.locator('.dm-map-panel__controls')).toBeVisible()
+  await expect(page.locator('.dm-map-panel__map-name')).toHaveText('The Sunken Spire — Ground Floor')
+  await expect(page.locator('.dm-map-panel__controls select')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Hide map from players' })).toHaveCount(0)
+
   // The old standalone "Character Sheet" nav button was replaced by the sidebar's
   // character list — re-selecting the currently-open character (its row is marked
   // active) is what switches the detail pane back to the sheet now.
