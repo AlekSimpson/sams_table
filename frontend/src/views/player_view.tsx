@@ -1,70 +1,19 @@
-// VIEW layer — player's character selection view
-import { useEffect } from 'react'
+// VIEW layer — player's landing route. Now just a redirect gate: if the player already
+// has at least one character, send them straight to its dashboard (the sidebar there
+// handles switching between characters — see player_dashboard.tsx). Only a brand-new
+// player with zero characters actually sees this page, as an empty state to create one.
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { session_viewmodel } from '../viewmodels/session_viewmodel'
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
-import { DNDCharacter } from '../types/dnd_types'
-import { Avatar, Button, Card, TopBar } from './components'
+import { Button, TopBar } from './components'
 import '../../styles/player_view.css'
-
-interface CharacterCardProps {
-  character: DNDCharacter
-}
-
-function CharacterCard({ character }: CharacterCardProps) {
-  const { character_card_model } = character_viewmodel()
-  const model = character_card_model(character)
-
-  return (
-    <Card className="character-card" onClick={model.on_card_click}>
-      <div className="character-card__top">
-        <Avatar label={character.name?.[0]?.toUpperCase() ?? '?'} />
-
-        <div className="character-card__info">
-          <div className="character-card__name">
-            {character.name || 'Unnamed Character'}
-          </div>
-          <div className="character-card__identity">
-            {model.identity_parts.length > 0 ? model.identity_parts.join(' · ') : 'No class or race set'}
-          </div>
-        </div>
-      </div>
-
-      <Button
-        variant="destructive"
-        size="small"
-        className="character-card__delete-btn"
-        onClick={model.on_delete_click}
-      >
-        Delete
-      </Button>
-
-      <div className="character-card__stats">
-        <div className="character-card__stat">
-          <span className={`character-card__stat-value${model.is_low_health ? ' character-card__stat-value--danger' : ''}`}>
-            {character.current_hp}/{character.max_hp}
-          </span>
-          <span className="character-card__stat-label">HP</span>
-        </div>
-        <div className="character-card__stat">
-          <span className="character-card__stat-value">{character.armor_class}</span>
-          <span className="character-card__stat-label">AC</span>
-        </div>
-        <div className="character-card__stat">
-          <span className="character-card__stat-value">{character.speed}</span>
-          <span className="character-card__stat-label">Speed</span>
-        </div>
-      </div>
-
-      <div className="character-card__hp-bar">
-        <div className="character-card__hp-bar-fill" style={{ width: `${model.health_percentage}%` }} />
-      </div>
-    </Card>
-  )
-}
 
 export default function PlayerView() {
   const session = session_viewmodel()
+  const navigate = useNavigate()
   const { characters, load_user_characters, create_new_character_for_user } = character_viewmodel()
+  const [has_loaded, set_has_loaded] = useState(false)
 
   const on_create_press = () => {
     if (!session.user) return
@@ -73,10 +22,20 @@ export default function PlayerView() {
 
   useEffect(() => {
     if (!session.user) return
-    load_user_characters(session.user.id)
+    load_user_characters(session.user.id).catch(() => {}).then(() => set_has_loaded(true))
   }, [session.user?.id])
 
   const character_list = Object.values(characters)
+
+  useEffect(() => {
+    if (has_loaded && character_list.length > 0) {
+      navigate(`/play/dashboard/${character_list[0].id}`, { replace: true })
+    }
+  }, [has_loaded, character_list.length])
+
+  // Still loading, or about to redirect away — render nothing rather than flash the
+  // empty state at a player who actually has characters.
+  if (!has_loaded || character_list.length > 0) return null
 
   return (
     <div className="player-view">
@@ -86,19 +45,11 @@ export default function PlayerView() {
       />
 
       <main className="player-view__content">
-        {character_list.length === 0 ? (
-          <div className="character-grid character-grid--empty">
-            <div className="character-grid__empty-state">
-              No characters yet — create one to get started.
-            </div>
+        <div className="character-grid character-grid--empty">
+          <div className="character-grid__empty-state">
+            No characters yet — create one to get started.
           </div>
-        ) : (
-          <div className="character-grid">
-            {character_list.map((character) => (
-              <CharacterCard key={character.id} character={character} />
-            ))}
-          </div>
-        )}
+        </div>
       </main>
     </div>
   )

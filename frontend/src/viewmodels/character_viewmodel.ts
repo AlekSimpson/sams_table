@@ -256,12 +256,18 @@ export function character_viewmodel() {
     , [set_characters]
   )
 
+  // Creating a character always immediately opens it in the dashboard (Notes.app-style:
+  // "+" both creates and selects the new item) — this is the only entry point for
+  // character creation now that it's reachable from both the zero-character /play
+  // empty state and the player dashboard sidebar's "+ New Character" affordance.
   const create_new_character_for_user = useCallback(
     async (user_id: string, character_name: string) => {
       const new_character = await character_api.create(user_id, { name: character_name })
       set_character(new_character)
+      navigate(`/play/dashboard/${new_character.id}`)
+      return new_character
     }
-    , [set_character]
+    , [set_character, navigate]
   )
 
   const delete_character = useCallback(
@@ -284,7 +290,12 @@ export function character_viewmodel() {
     [set_character]
   )
 
-  function character_card_model(character: DNDCharacter) {
+  // is_selected: whether this card/row represents the character currently open in the
+  // dashboard — used only to decide where to navigate after a successful delete (away
+  // from the now-gone character, via /play's own redirect-to-another-character logic;
+  // see player_view.tsx). Deleting a character that ISN'T the one currently open should
+  // never navigate the player away from what they're looking at.
+  function character_card_model(character: DNDCharacter, is_selected: boolean = false) {
 
     function character_health_percentage(character: DNDCharacter): number {
       if (character.max_hp === 0) return 0
@@ -295,7 +306,9 @@ export function character_viewmodel() {
     const on_delete_click = (event: React.MouseEvent) => {
       event.stopPropagation()
       if (window.confirm(`Delete ${character.name}? This cannot be undone.`)) {
-        delete_character(character.id)
+        delete_character(character.id).then(() => {
+          if (is_selected) navigate('/play', { replace: true })
+        })
       }
     }
 
