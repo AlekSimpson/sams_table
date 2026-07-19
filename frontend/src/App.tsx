@@ -35,7 +35,7 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route element={<RequireDM />}>
             <Route path="/dm" element={<DMDashboard />} />
-            <Route path="/dm/map-builder/:mapId" element={<MapBuilder />} />
+            <Route path="/dm/map-builder/:map_id" element={<MapBuilder />} />
           </Route>
 
           <Route element={<RequirePlayer />}>
