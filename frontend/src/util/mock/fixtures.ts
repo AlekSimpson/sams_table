@@ -220,3 +220,28 @@ export function generate_join_code(): string {
   }
   return code
 }
+
+// mock_store itself only lives in this page's JS memory, so it can't be seen by a DM
+// and a player driving the app from two different browser tabs/pages (e.g. an E2E test
+// with a separate DM page and player page in the same browser context). Join codes are
+// the one piece of state that genuinely needs to cross that boundary, so they're mirrored
+// into localStorage (shared per-origin across tabs of the same context) in addition to
+// mock_store.join_codes, and session join checks both.
+const SHARED_JOIN_CODES_STORAGE_KEY = 'sams-table-mock-join-codes'
+
+export function read_shared_join_codes(): Record<string, { campaign_id: string; active_map_id: string | null }> {
+  try {
+    const raw = localStorage.getItem(SHARED_JOIN_CODES_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function write_shared_join_codes(join_codes: Record<string, { campaign_id: string; active_map_id: string | null }>): void {
+  try {
+    localStorage.setItem(SHARED_JOIN_CODES_STORAGE_KEY, JSON.stringify(join_codes))
+  } catch {
+    // ignore storage errors (e.g. unavailable/full storage)
+  }
+}

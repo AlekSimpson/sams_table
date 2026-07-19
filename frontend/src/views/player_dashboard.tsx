@@ -3,6 +3,8 @@ import { character_viewmodel } from "../viewmodels/character_viewmodel"
 import { session_viewmodel } from "../viewmodels/session_viewmodel"
 import { useParams } from 'react-router-dom'
 import CharacterSheet from './character_sheet'
+import DiceRoller from './dice_roller'
+import DiceRollFeed from './dice_roll_feed'
 import { PlayerDashboardParameters } from "../types/app_types"
 import { Button, Card, Input, Sidebar, TopBar } from './components'
 import '../../styles/player_dashboard.css'
@@ -69,6 +71,14 @@ export default function PlayerDashboard() {
             >
               Live Map
             </Button>
+            <Button
+              variant={model.current_tab === 'dice' ? 'secondary' : 'ghost'}
+              size="small"
+              full_width
+              onClick={model.on_dice_tab_press}
+            >
+              Dice
+            </Button>
           </nav>
         </Sidebar>
 
@@ -78,6 +88,12 @@ export default function PlayerDashboard() {
             {model.current_tab === 'map'   && (
               <div className="scaffold-placeholder" style={{ margin: '32px', padding: '60px 20px' }}>
                 Live Map — coming soon
+              </div>
+            )}
+            {model.current_tab === 'dice'  && (
+              <div className="player-dashboard__dice-tab">
+                <DiceRoller character_id={character_id} character_name={character.name} />
+                <DiceRollFeed />
               </div>
             )}
           </main>

@@ -1,28 +1,20 @@
 // VIEW layer — player dice roller (notation input, client-side validation, WS roll request)
-import { useEffect } from 'react'
 import { combat_viewmodel } from '../viewmodels/combat_viewmodel'
-import { character_viewmodel } from '../viewmodels/character_viewmodel'
-import { session_viewmodel } from '../viewmodels/session_viewmodel'
 import { Badge, Button, Card, Input } from './components'
 import '../../styles/dice_roller.css'
 
-export default function DiceRoller() {
-  const session = session_viewmodel()
-  const { characters, load_campaign_characters } = character_viewmodel()
+interface DiceRollerProps {
+  character_id: string
+  character_name: string
+}
+
+export default function DiceRoller({ character_id, character_name }: DiceRollerProps) {
   const dice_roller = combat_viewmodel().dice_roller_model()
 
-  useEffect(() => {
-    if (!session.campaign_id) return
-    load_campaign_characters(session.campaign_id)
-  }, [session.campaign_id])
-
-  const character = session.character_id ? characters[session.character_id] : null
-  const roller_name = character?.name ?? session.user?.username ?? 'Unknown'
-  const can_roll = session.character_id !== null && !dice_roller.is_rolling
+  const can_roll = !dice_roller.is_rolling
 
   const on_roll_press = () => {
-    if (!session.character_id) return
-    dice_roller.on_roll_press(session.character_id, roller_name)
+    dice_roller.on_roll_press(character_id, character_name)
   }
 
   return (
