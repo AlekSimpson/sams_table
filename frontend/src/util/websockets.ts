@@ -66,6 +66,11 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
       break
     }
     case 'token_moved': {
+      // Same race as map_tile_placed/removed above: the initial REST load_map call
+      // (see map_viewmodel.ts) also fetches tokens, so drop events that arrive before
+      // it resolves rather than applying them to a token list that's about to be
+      // overwritten by that response.
+      if (map_state.tiles_loading) break
       const p = envelope.payload as TokenMovedPayload
       map_state.move_token(p.token_id, p.grid_x, p.grid_y)
       break

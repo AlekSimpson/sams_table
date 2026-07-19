@@ -7,9 +7,9 @@ export interface DNDCampaign {
 }
 
 export interface CampaignPermissionEntry {
-  user_id:               string
-  can_edit_map:          boolean
-  can_view_hidden_tiles: boolean
+  user_id:          string
+  can_move_tokens:  boolean
+  can_place_tiles:  boolean
 }
 
 export interface DNDCharacter {

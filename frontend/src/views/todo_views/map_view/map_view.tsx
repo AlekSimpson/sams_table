@@ -1,5 +1,5 @@
 // VIEW layer — shared R3F scene (builder + viewer modes)
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Canvas, ThreeEvent } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import GridOverlay from './grid_overlay'
@@ -15,6 +15,7 @@ interface MapSceneProps {
 
 export default function MapScene({ mode, map_id }: MapSceneProps) {
   const { tiles_loading, tiles_error, selected_asset_id, load_map, place_map_tile } = map_viewmodel()
+  const [is_dragging_token, set_is_dragging_token] = useState(false)
 
   useEffect(() => {
     load_map(map_id)
@@ -49,14 +50,14 @@ export default function MapScene({ mode, map_id }: MapSceneProps) {
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <GridOverlay />
       <TileRenderer map_id={map_id} mode={mode} />
-      <TokenLayer />
+      <TokenLayer on_drag_state_change={set_is_dragging_token} />
       {mode === 'build' && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} onClick={handle_grid_click}>
           <planeGeometry args={[30, 30]} />
           <meshBasicMaterial visible={false} />
         </mesh>
       )}
-      <OrbitControls makeDefault />
+      <OrbitControls makeDefault enabled={!is_dragging_token} />
     </Canvas>
   )
 }

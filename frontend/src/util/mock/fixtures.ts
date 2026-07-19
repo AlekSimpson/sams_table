@@ -2,7 +2,7 @@
 // mutated in place by mock_rest_client.ts / mock_websocket.ts.
 import { JWTClaims, Role, User } from '../../types/app_types'
 import { CampaignPermissionEntry, DNDCampaign, DNDCharacter, DNDClass, DNDRace } from '../../types/dnd_types'
-import { GameMap, MapTile, UploadedAsset } from '../../types/game_types'
+import { GameMap, MapTile, Token, UploadedAsset } from '../../types/game_types'
 
 export const DEMO_CAMPAIGN_ID = 'demo-campaign-0001'
 export const DEMO_DM_USER_ID = 'demo-user-dm-0001'
@@ -95,6 +95,14 @@ const DEMO_MAP_TILES: MapTile[] = [
   { id: 'demo-tile-0006', map_id: DEMO_MAP_ID, asset_id: 'default_wall_brick', asset_source: 'default', grid_x: 1, grid_y: -1, grid_z: 0, rotation_y: 90 },
 ]
 
+// Token is not map-scoped (see types/game_types.ts) — the demo campaign only has one
+// map, so these are simply seeded once per character rather than filtered by map_id.
+const DEMO_TOKENS: Token[] = [
+  { id: 'demo-token-0001', character_id: 'demo-character-0001', grid_x: 0, grid_y: 0 },
+  { id: 'demo-token-0002', character_id: 'demo-character-0002', grid_x: 1, grid_y: 0 },
+  { id: 'demo-token-0003', character_id: 'demo-character-0003', grid_x: 0, grid_y: 1 },
+]
+
 const DEMO_UPLOADED_ASSETS: UploadedAsset[] = [
   {
     id: 'demo-asset-0001',
@@ -150,8 +158,8 @@ const DEMO_RACES: DNDRace[] = [
 
 const DEMO_PERMISSIONS: Record<string, CampaignPermissionEntry[]> = {
   [DEMO_CAMPAIGN_ID]: [
-    { user_id: DEMO_DM_USER_ID, can_edit_map: true, can_view_hidden_tiles: true },
-    { user_id: DEMO_PLAYER_USER_ID, can_edit_map: false, can_view_hidden_tiles: false },
+    { user_id: DEMO_DM_USER_ID, can_move_tokens: true, can_place_tiles: true },
+    { user_id: DEMO_PLAYER_USER_ID, can_move_tokens: true, can_place_tiles: false },
   ],
 }
 
@@ -161,6 +169,7 @@ export const mock_store = {
   characters: DEMO_CHARACTERS.slice(),
   maps: [DEMO_MAP] as GameMap[],
   map_tiles: DEMO_MAP_TILES.slice(),
+  tokens: DEMO_TOKENS.slice(),
   uploaded_assets: DEMO_UPLOADED_ASSETS.slice(),
   classes: DEMO_CLASSES,
   races: DEMO_RACES,
