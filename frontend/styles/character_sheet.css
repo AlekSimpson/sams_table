@@ -536,6 +536,23 @@ input.cs__vital-val::-webkit-outer-spin-button { -webkit-appearance: none; }
   font-style: italic;
 }
 
+.cs__equipment-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cs__equipment-item {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+.cs__equipment-item:last-child { border-bottom: none; }
+
 .cs__effect-card {
   display: flex;
   justify-content: space-between;
