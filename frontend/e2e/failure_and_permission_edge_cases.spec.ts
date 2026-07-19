@@ -54,7 +54,7 @@ test('Invalid join code shows an inline error and does not start a session', asy
 test('Invalid dice notation shows a validation error and does not send a roll request', async ({ page }) => {
   await login_as_player_and_open_character_dashboard(page)
 
-  await page.getByRole('button', { name: 'Dice', exact: true }).click()
+  await page.getByRole('button', { name: 'Roll dice', exact: true }).click()
   // Same mock-WS connection-latency wait used in player_primary_flow.spec.ts — irrelevant
   // to whether validation fires, but kept so this test's timing matches the happy-path
   // dice test and stays deterministic if a later change makes the invalid case WS-dependent.

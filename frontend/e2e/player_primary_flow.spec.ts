@@ -72,9 +72,9 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   await expect(page.getByText(EQUIPMENT_ITEM_NAME, { exact: true })).toBeVisible()
 
   // --- Verify both edits actually persisted (not just optimistic local state): switch
-  // to the Dice tab (unmounting CharacterSheet) and back (remounting it, which re-fetches
-  // the character from the mock backend) ---
-  await page.getByRole('button', { name: 'Dice', exact: true }).click()
+  // to the Live Map tab (unmounting CharacterSheet) and back (remounting it, which
+  // re-fetches the character from the mock backend) ---
+  await page.getByRole('button', { name: 'Live Map', exact: true }).click()
   await page.getByRole('button', { name: 'Character Sheet', exact: true }).click()
   // The character store (character_model.ts) isn't reset on unmount, so the just-edited
   // value is still showing immediately after remount regardless of whether it actually
@@ -87,7 +87,7 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   await expect(page.getByText(EQUIPMENT_ITEM_NAME, { exact: true })).toBeVisible()
 
   // --- Use the dice roller to submit a valid roll and verify a result appears ---
-  await page.getByRole('button', { name: 'Dice', exact: true }).click()
+  await page.getByRole('button', { name: 'Roll dice', exact: true }).click()
   await page.getByLabel('Dice Notation').fill(DICE_NOTATION)
   // The mock WebSocket (see mock_websocket.ts) only opens after a simulated 150-400ms
   // connection latency (mock_config.ts), with no DOM-visible "connected" signal to wait
