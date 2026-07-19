@@ -97,25 +97,29 @@ export function dm_dashboard_viewmodel() {
     const [new_map_validation_error, set_new_map_validation_error] = useState<string | null>(null)
     const [is_creating_map, set_is_creating_map] = useState(false)
     const [selected_character_id, set_selected_character_id] = useState<string | null>(null)
+    const [selected_map_id, set_selected_map_id] = useState<string | null>(null)
 
     const on_characters_tab_press = () => set_current_tab('characters')
     const on_maps_tab_press = () => set_current_tab('maps')
     const on_character_select = (character_id: string) => set_selected_character_id(character_id)
     const on_back_to_characters_press = () => set_selected_character_id(null)
+    const on_map_select = (map_id: string) => set_selected_map_id(map_id)
+    const on_back_to_maps_press = () => set_selected_map_id(null)
 
-    // Clearing the drilled-into character selection is tied directly to campaign_id
+    // Clearing the drilled-into character/map selection is tied directly to campaign_id
     // itself — synchronously, on every genuine campaign change — rather than to
-    // load_characters' async resolution. load_characters can be in flight for a while
-    // (network/mock latency), and CampaignDetailPanel's mount effect runs under
-    // StrictMode's dev-mode double effect invocation, so two overlapping
-    // load_characters calls for the SAME campaign_id can be in flight at once.
-    // Clearing selection from inside that async path let a slow/duplicate call wipe
-    // out a selection the user made in the meantime (and, for a real campaign switch,
-    // left a fetch-duration window where the OLD campaign's sheet stayed visible under
-    // the NEW campaign's header). This effect fires immediately on the actual
-    // campaign_id change, independent of any network call.
+    // load_characters'/load_maps' async resolution. Those calls can be in flight for a
+    // while (network/mock latency), and CampaignDetailPanel's mount effect runs under
+    // StrictMode's dev-mode double effect invocation, so two overlapping load calls for
+    // the SAME campaign_id can be in flight at once. Clearing selection from inside
+    // that async path let a slow/duplicate call wipe out a selection the user made in
+    // the meantime (and, for a real campaign switch, left a fetch-duration window
+    // where the OLD campaign's data stayed visible under the NEW campaign's header).
+    // This effect fires immediately on the actual campaign_id change, independent of
+    // any network call.
     useEffect(() => {
       set_selected_character_id(null)
+      set_selected_map_id(null)
     }, [campaign_id])
 
     const load_characters = useCallback(async () => {
@@ -172,10 +176,13 @@ export function dm_dashboard_viewmodel() {
       characters,
       maps,
       selected_character_id,
+      selected_map_id,
       on_characters_tab_press,
       on_maps_tab_press,
       on_character_select,
       on_back_to_characters_press,
+      on_map_select,
+      on_back_to_maps_press,
       load_characters,
       load_maps,
       new_map_name,

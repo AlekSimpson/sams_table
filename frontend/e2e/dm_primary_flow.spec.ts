@@ -137,3 +137,47 @@ test('DM can open a character\'s live sheet from the Characters tab and return t
 
   expect(page_errors).toEqual([])
 })
+
+test('DM can embed the live map editor from the Maps tab without navigating to the standalone map builder', async ({ page }) => {
+  const page_errors: Error[] = []
+  page.on('pageerror', (error) => page_errors.push(error))
+
+  // --- Login as the seeded dm_demo user, who already owns the seeded demo campaign
+  // ("The Sunken Spire") complete with a pre-seeded map ---
+  await page.goto('/login')
+  await page.getByLabel('Username').fill('dm_demo')
+  await page.getByLabel('Password').fill('any-password')
+  await page.getByLabel('Signing in as a player').uncheck()
+  await page.getByRole('button', { name: 'Sign In' }).click()
+
+  await expect(page).toHaveURL('/dm')
+
+  const campaign_sidebar_item = page.locator('.sidebar').getByText('The Sunken Spire', { exact: true })
+  await campaign_sidebar_item.click()
+
+  const campaign_detail_panel = page.locator('.campaign-detail-panel')
+  await expect(campaign_detail_panel.getByText('The Sunken Spire', { exact: true })).toBeVisible()
+
+  await campaign_detail_panel.getByRole('button', { name: 'Maps' }).click()
+  await expect(campaign_detail_panel.getByText('The Sunken Spire — Ground Floor', { exact: true })).toBeVisible()
+
+  // Select the seeded map: the live map + full build tools embed directly in the
+  // pane (no navigation to the standalone /dm/map-builder/:map_id route).
+  await campaign_detail_panel.getByText('The Sunken Spire — Ground Floor', { exact: true }).click()
+  await expect(page).toHaveURL('/dm')
+
+  const map_editor_frame = campaign_detail_panel.locator('.campaign-detail-panel__map-editor-frame')
+  await expect(map_editor_frame.locator('canvas')).toBeVisible()
+  await expect(map_editor_frame.locator('.asset-catalogue-panel')).toBeVisible()
+
+  // This embedded, pre-session usage must not show session-only chrome — no
+  // "hide from players" broadcast toggle, which only makes sense in-session.
+  await expect(map_editor_frame.getByText('Hide map from players')).not.toBeVisible()
+
+  // --- Navigate back to the map list via the "Back to maps" affordance ---
+  await map_editor_frame.getByRole('button', { name: /Back to maps/ }).click()
+  await expect(campaign_detail_panel.locator('.campaign-detail-panel__list')).toBeVisible()
+  await expect(campaign_detail_panel.getByText('The Sunken Spire — Ground Floor', { exact: true })).toBeVisible()
+
+  expect(page_errors).toEqual([])
+})

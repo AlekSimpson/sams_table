@@ -519,6 +519,68 @@ describe('campaign_detail_panel_model', () => {
       expect(result.current.maps).toEqual([])
     })
   })
+
+  describe('map selection', () => {
+    it('selects a map via on_map_select', () => {
+      const { result } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_map_select('map-1')
+      })
+
+      expect(result.current.selected_map_id).toBe('map-1')
+    })
+
+    it('clears the selection via on_back_to_maps_press', () => {
+      const { result } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_map_select('map-1')
+      })
+      act(() => {
+        result.current.on_back_to_maps_press()
+      })
+
+      expect(result.current.selected_map_id).toBeNull()
+    })
+
+    // Regression test: mirrors the character-selection regression test above — the
+    // fix (clearing selection off the campaign_id effect, not an async load's
+    // resolution) covers selected_map_id via the very same effect, but this asserts
+    // it directly for maps too.
+    it('does not clear an existing selection when load_maps resolves', async () => {
+      mock_campaign_api.list_maps.mockResolvedValue([])
+      const { result } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_map_select('map-1')
+      })
+      expect(result.current.selected_map_id).toBe('map-1')
+
+      await act(async () => {
+        await result.current.load_maps()
+      })
+
+      expect(result.current.selected_map_id).toBe('map-1')
+    })
+
+    // Selection must be cleared synchronously on a genuine campaign switch, without
+    // waiting on any network call — this test never mocks/resolves list_maps at all,
+    // proving the clear can't be gated on it.
+    it('clears the selection synchronously when campaign_id changes, independent of any API call', () => {
+      const { result, rerender } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_map_select('map-1')
+      })
+      expect(result.current.selected_map_id).toBe('map-1')
+
+      rerender({ campaign_id: 'campaign-2' })
+
+      expect(result.current.selected_map_id).toBeNull()
+      expect(mock_campaign_api.list_maps).not.toHaveBeenCalled()
+    })
+  })
 })
 
 describe('session_controls_model', () => {
