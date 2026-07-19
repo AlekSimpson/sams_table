@@ -121,14 +121,14 @@ export const mock_rules_api = {
 export const mock_map_api = {
   list: () => resolve_after_latency(() => mock_store.maps.slice()),
 
-  create: (campaign_id: string, name: string) =>
+  create: (campaign_id: string, name: string, grid_width: number, grid_height: number) =>
     resolve_after_latency((): GameMap => {
       const map: GameMap = {
         id: crypto.randomUUID(),
         campaign_id,
         name,
-        grid_width: 20,
-        grid_height: 20,
+        grid_width,
+        grid_height,
         created_at: new Date().toISOString(),
       }
       mock_store.maps.push(map)

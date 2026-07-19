@@ -121,10 +121,14 @@ export const rules_api = {
 export const map_api = {
   list: () => resolve(() => request<GameMap[]>('/maps'), () => mock_map_api.list()),
 
-  create: (campaign_id: string, name: string) =>
+  create: (campaign_id: string, name: string, grid_width: number, grid_height: number) =>
     resolve(
-      () => request<GameMap>('/maps', { method: 'POST', body: JSON.stringify({ campaign_id: campaign_id, name }) }),
-      () => mock_map_api.create(campaign_id, name)
+      () =>
+        request<GameMap>('/maps', {
+          method: 'POST',
+          body: JSON.stringify({ campaign_id: campaign_id, name, grid_width, grid_height }),
+        }),
+      () => mock_map_api.create(campaign_id, name, grid_width, grid_height)
     ),
 
   get: (id: string) => resolve(() => request<GameMap>(`/maps/${id}`), () => mock_map_api.get(id)),

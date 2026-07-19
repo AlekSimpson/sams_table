@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { DNDCampaign } from '../types/dnd_types'
-import { Button, Card } from './components'
+import { Button, Card, Input, Panel } from './components'
 import '../../styles/campaign_detail_panel.css'
 
 interface CampaignDetailPanelProps {
@@ -64,6 +64,55 @@ export default function CampaignDetailPanel({ campaign }: CampaignDetailPanelPro
 
       {model.current_tab === 'maps' && (
         <div className="campaign-detail-panel__list">
+          <Panel className="campaign-detail-panel__map-form">
+            <span className="section-label">New Map</span>
+
+            <Input
+              id="new-map-name-input"
+              label="Name"
+              type="text"
+              value={model.new_map_name}
+              onChange={model.on_new_map_name_change}
+              placeholder="Map name"
+            />
+
+            <div className="campaign-detail-panel__map-form-grid-fields">
+              <Input
+                id="new-map-grid-width-input"
+                label="Grid Width"
+                type="number"
+                min={1}
+                step={1}
+                value={model.new_map_grid_width_draft}
+                onChange={model.on_new_map_grid_width_change}
+              />
+              <Input
+                id="new-map-grid-height-input"
+                label="Grid Height"
+                type="number"
+                min={1}
+                step={1}
+                value={model.new_map_grid_height_draft}
+                onChange={model.on_new_map_grid_height_change}
+              />
+            </div>
+
+            {model.new_map_validation_error && (
+              <span className="campaign-detail-panel__map-form-error" role="alert">
+                {model.new_map_validation_error}
+              </span>
+            )}
+
+            <Button
+              variant="primary"
+              size="small"
+              onClick={model.on_create_map_press}
+              disabled={!model.new_map_name.trim() || model.is_creating_map}
+            >
+              {model.is_creating_map ? 'Creating…' : 'Create Map'}
+            </Button>
+          </Panel>
+
           {model.maps.length === 0 ? (
             <div className="campaign-detail-panel__empty">No maps in this campaign yet.</div>
           ) : (
