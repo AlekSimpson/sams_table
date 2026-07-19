@@ -131,7 +131,8 @@ test('DM can open a character\'s live sheet from the Characters tab and return t
   await expect(character_sheet_frame.locator('.cs__ability-score[title="Strength"]')).toHaveValue('16')
 
   // --- Navigate back to the character list via the "Back to characters" affordance ---
-  await character_sheet_frame.getByRole('button', { name: /Back to characters/ }).click()
+  // (rendered inline in the tabs row, not inside the character sheet frame)
+  await campaign_detail_panel.getByRole('button', { name: /Back to characters/ }).click()
   await expect(campaign_detail_panel.locator('.campaign-detail-panel__list')).toBeVisible()
   await expect(campaign_detail_panel.getByText('Thorian Ashvale', { exact: true })).toBeVisible()
 
@@ -175,7 +176,8 @@ test('DM can embed the live map editor from the Maps tab without navigating to t
   await expect(map_editor_frame.getByText('Hide map from players')).not.toBeVisible()
 
   // --- Navigate back to the map list via the "Back to maps" affordance ---
-  await map_editor_frame.getByRole('button', { name: /Back to maps/ }).click()
+  // (rendered inline in the tabs row, not inside the map editor frame)
+  await campaign_detail_panel.getByRole('button', { name: /Back to maps/ }).click()
   await expect(campaign_detail_panel.locator('.campaign-detail-panel__list')).toBeVisible()
   await expect(campaign_detail_panel.getByText('The Sunken Spire — Ground Floor', { exact: true })).toBeVisible()
 

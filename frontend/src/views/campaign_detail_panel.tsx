@@ -44,19 +44,31 @@ export default function CampaignDetailPanel({ campaign }: CampaignDetailPanelPro
         >
           Maps
         </Button>
+        {model.current_tab === 'characters' && model.selected_character_id && (
+          <Button
+            variant="ghost"
+            size="small"
+            onClick={model.on_back_to_characters_press}
+            className="campaign-detail-panel__back-button"
+          >
+            ← Back to characters
+          </Button>
+        )}
+        {model.current_tab === 'maps' && model.selected_map_id && (
+          <Button
+            variant="ghost"
+            size="small"
+            onClick={model.on_back_to_maps_press}
+            className="campaign-detail-panel__back-button"
+          >
+            ← Back to maps
+          </Button>
+        )}
       </nav>
 
       {model.current_tab === 'characters' && (
         model.selected_character_id ? (
           <div className="campaign-detail-panel__character-sheet-frame">
-            <Button
-              variant="ghost"
-              size="small"
-              onClick={model.on_back_to_characters_press}
-              className="campaign-detail-panel__back-button"
-            >
-              ← Back to characters
-            </Button>
             <div className="campaign-detail-panel__character-sheet-body">
               <CharacterSheet character_id={model.selected_character_id} />
             </div>
@@ -88,14 +100,6 @@ export default function CampaignDetailPanel({ campaign }: CampaignDetailPanelPro
       {model.current_tab === 'maps' && (
         model.selected_map_id ? (
           <div className="campaign-detail-panel__map-editor-frame">
-            <Button
-              variant="ghost"
-              size="small"
-              onClick={model.on_back_to_maps_press}
-              className="campaign-detail-panel__back-button"
-            >
-              ← Back to maps
-            </Button>
             <div className="campaign-detail-panel__map-editor-body">
               <DmMapEditor map_id={model.selected_map_id} campaign_id={campaign.id} />
             </div>
