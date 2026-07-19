@@ -106,8 +106,8 @@ function render_dashboard() {
   return renderHook(() => dm_dashboard_viewmodel())
 }
 
-function render_campaign_list_panel() {
-  return renderHook(() => dm_dashboard_viewmodel().campaign_list_panel_model())
+function render_campaign_sidebar() {
+  return renderHook(() => dm_dashboard_viewmodel().campaign_sidebar_model())
 }
 
 function render_campaign_detail_panel(campaign_id: string) {
@@ -246,9 +246,9 @@ describe('end_session', () => {
   })
 })
 
-describe('campaign_list_panel_model', () => {
+describe('campaign_sidebar_model', () => {
   it('does nothing when the campaign name is blank', () => {
-    const { result } = render_campaign_list_panel()
+    const { result } = render_campaign_sidebar()
 
     act(() => {
       result.current.on_create_press()
@@ -260,7 +260,7 @@ describe('campaign_list_panel_model', () => {
   it('creates a campaign with the trimmed name and description, and resets both drafts immediately', async () => {
     const new_campaign = make_campaign({ id: 'campaign-1', name: 'The Sunken Spire' })
     mock_campaign_api.create.mockResolvedValue(new_campaign)
-    const { result } = render_campaign_list_panel()
+    const { result } = render_campaign_sidebar()
 
     act(() => {
       result.current.on_name_change({ target: { value: '  The Sunken Spire  ' } } as React.ChangeEvent<HTMLInputElement>)
@@ -281,7 +281,7 @@ describe('campaign_list_panel_model', () => {
 
   it('passes undefined for the description when it is blank', () => {
     mock_campaign_api.create.mockResolvedValue(make_campaign())
-    const { result } = render_campaign_list_panel()
+    const { result } = render_campaign_sidebar()
 
     act(() => {
       result.current.on_name_change({ target: { value: 'The Sunken Spire' } } as React.ChangeEvent<HTMLInputElement>)
@@ -291,17 +291,6 @@ describe('campaign_list_panel_model', () => {
     })
 
     expect(mock_campaign_api.create).toHaveBeenCalledWith('The Sunken Spire', undefined)
-  })
-
-  it('deselects the current campaign on back press', () => {
-    dm_dashboard_model.getState().set_selected_campaign(make_campaign())
-    const { result } = render_campaign_list_panel()
-
-    act(() => {
-      result.current.on_back_press()
-    })
-
-    expect(dm_dashboard_model.getState().selected_campaign).toBeNull()
   })
 })
 
