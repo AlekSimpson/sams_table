@@ -84,7 +84,7 @@ describe('combat_model', () => {
     })
 
     it('caps the history at the most recent 10 results, dropping the oldest first', () => {
-      const results = Array.from({ length: 11 }, (_, index) => make_dice_roll_result({ total: index }))
+      const results = Array.from({ length: 13 }, (_, index) => make_dice_roll_result({ total: index }))
 
       for (const result of results) {
         combat_model.getState().add_dice_roll_result(result)
@@ -92,7 +92,27 @@ describe('combat_model', () => {
 
       const history = combat_model.getState().dice_roll_history
       expect(history).toHaveLength(10)
-      expect(history.map((result) => result.total)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+      expect(history.map((result) => result.total)).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    })
+
+    it('keeps sliding the window as more results arrive after the cap is first reached', () => {
+      const first_batch = Array.from({ length: 10 }, (_, index) => make_dice_roll_result({ total: index }))
+      for (const result of first_batch) {
+        combat_model.getState().add_dice_roll_result(result)
+      }
+      expect(combat_model.getState().dice_roll_history.map((result) => result.total)).toEqual([
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ])
+
+      combat_model.getState().add_dice_roll_result(make_dice_roll_result({ total: 10 }))
+      expect(combat_model.getState().dice_roll_history.map((result) => result.total)).toEqual([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+      ])
+
+      combat_model.getState().add_dice_roll_result(make_dice_roll_result({ total: 11 }))
+      expect(combat_model.getState().dice_roll_history.map((result) => result.total)).toEqual([
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+      ])
     })
   })
 })
