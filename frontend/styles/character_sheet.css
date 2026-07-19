@@ -536,6 +536,13 @@ input.cs__vital-val::-webkit-outer-spin-button { -webkit-appearance: none; }
   font-style: italic;
 }
 
+.cs__equipment-add-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.cs__equipment-add-row .input { flex: 1; }
+
 .cs__equipment-list {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -546,12 +553,26 @@ input.cs__vital-val::-webkit-outer-spin-button { -webkit-appearance: none; }
 }
 
 .cs__equipment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   border-bottom: 1px solid var(--color-border);
 }
 .cs__equipment-item:last-child { border-bottom: none; }
+
+.cs__equipment-remove {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  line-height: 1;
+  padding: 0 var(--space-2);
+}
+.cs__equipment-remove:hover { opacity: 0.7; }
 
 .cs__effect-card {
   display: flex;
