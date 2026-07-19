@@ -1,20 +1,21 @@
 // VIEWMODEL layer — combat/initiative/dice logic. The only combat-related import Views need.
 import { useCallback, useState } from 'react'
-import { InitiativeEntry } from '../types/websocket_types'
+import { InitiativeEntry, InitiativeUpdatePayload } from '../types/websocket_types'
+import { combat_model } from '../models/combat_model'
 import { websocket_hook } from '../util/websockets'
 
 export function combat_viewmodel() {
-  const [initiative_order, set_initiative_order] = useState<InitiativeEntry[]>([])
+  const { initiative_order } = combat_model()
   const [active_turn_index, set_active_turn_index] = useState(0)
   const { send } = websocket_hook()
 
-  /** DM: set and broadcast the initiative order. Sorts by roll descending. */
+  /** DM: sort and broadcast the initiative order. The order itself is applied locally
+   *  when the resulting `initiative_update` event round-trips back over the WS
+   *  connection (see dispatch_websocket_event in util/websockets.ts). */
   const set_initiative = useCallback(
     (entries: InitiativeEntry[]) => {
       const sorted = [...entries].sort((a, b) => b.initiative - a.initiative)
-      set_initiative_order(sorted)
-      // TODO: send('initiative_update', { ordered_entries: sorted })
-      void send
+      send<InitiativeUpdatePayload>('initiative_update', { ordered_entries: sorted })
     },
     [send]
   )

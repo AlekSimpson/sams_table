@@ -3,22 +3,25 @@ import { useCallback, useEffect, useRef } from 'react'
 import { session_model } from '../models/session_model'
 import { map_model } from '../models/map_model'
 import { character_model } from '../models/character_model'
+import { combat_model } from '../models/combat_model'
 import { WSEnvelope, WSEventType } from '../types/websocket_types'
 import { MOCK_MODE_ENABLED } from './mock/mock_config'
 import { MockWebSocket } from './mock/mock_websocket'
-import { 
-  HPUpdatePayload, 
-  MapActivatedPayload, 
-  MapTilePlacedPayload, 
-  MapTileRemovedPayload, 
-  TokenMovedPayload, 
-  ConditionUpdatePayload 
+import {
+  HPUpdatePayload,
+  MapActivatedPayload,
+  MapTilePlacedPayload,
+  MapTileRemovedPayload,
+  TokenMovedPayload,
+  ConditionUpdatePayload,
+  InitiativeUpdatePayload
 } from '../types/websocket_types'
 
 function dispatch_websocket_event(envelope: WSEnvelope) {
   // routes incoming WS events to the appropriate store actions.
   const map_state = map_model.getState()
   const character_state = character_model.getState()
+  const combat_state = combat_model.getState()
 
   switch (envelope.type as WSEventType) {
     case 'hp_update': {
@@ -61,8 +64,12 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
       character_state.update_conditions(p.character_id, p.conditions)
       break
     }
+    case 'initiative_update': {
+      const p = envelope.payload as InitiativeUpdatePayload
+      combat_state.set_initiative_order(p.ordered_entries)
+      break
+    }
     case 'dice_roll_result':
-    case 'initiative_update':
     case 'visibility_toggle':
       // TODO: route to combat store when implemented
       console.log('ws event (unhandled):', envelope.type, envelope.payload)
