@@ -40,10 +40,6 @@
   gap: var(--space-4);
 }
 
-.campaign-list-panel__detail-placeholder {
-  margin-top: var(--space-4);
-}
-
 /* ── Campaign card ── */
 .campaign-card {
   cursor: pointer;
