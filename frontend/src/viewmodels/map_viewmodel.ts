@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react'
 import { map_model } from '../models/map_model'
 import { map_api, permission_api } from '../util/rest_client'
 import { websocket_hook } from '../util/websockets'
-import { MapTile } from '../types/game_types'
+import { GameMap, MapTile } from '../types/game_types'
 import { CampaignPermissionEntry } from '../types/dnd_types'
 import { MapActivatedPayload, MapTilePlacedPayload, TokenMovedPayload } from '../types/websocket_types'
 
@@ -111,6 +111,24 @@ export function map_viewmodel() {
     []
   )
 
+  /** Player: read-only map info (currently just the name) for the in-session map header.
+   *  Unlike the DM's map_selector_model (dm_dashboard_viewmodel.ts), players don't choose
+   *  a map from a list — they only need to display whichever map the DM has activated. */
+  function map_info_model(map_ID: string | null) {
+    const [map, set_map] = useState<GameMap | null>(null)
+
+    const load_map_info = useCallback(async () => {
+      if (!map_ID) {
+        set_map(null)
+        return
+      }
+      const loaded_map = await map_api.get(map_ID)
+      set_map(loaded_map)
+    }, [map_ID])
+
+    return { map, load_map_info }
+  }
+
   return {
     tiles,
     tokens,
@@ -130,5 +148,6 @@ export function map_viewmodel() {
     load_map,
     move_token,
     load_permissions,
+    map_info_model,
   }
 }

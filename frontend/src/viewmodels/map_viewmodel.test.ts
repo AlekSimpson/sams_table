@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { map_model } from '../models/map_model'
-import { MapTile, Token } from '../types/game_types'
+import { GameMap, MapTile, Token } from '../types/game_types'
 import { CampaignPermissionEntry } from '../types/dnd_types'
 
 // map_api/permission_api are mocked at the module level (rather than letting calls fall
@@ -13,6 +13,7 @@ const { mock_map_api, mock_permission_api, mock_send } = vi.hoisted(() => ({
     getTiles: vi.fn<(map_id: string) => Promise<MapTile[]>>(),
     putTiles: vi.fn<(map_id: string, tiles: MapTile[]) => Promise<void>>(),
     getTokens: vi.fn<(map_id: string) => Promise<Token[]>>(),
+    get: vi.fn<(map_id: string) => Promise<GameMap>>(),
   },
   mock_permission_api: {
     get: vi.fn<(campaign_id: string) => Promise<CampaignPermissionEntry[]>>(),
@@ -55,8 +56,24 @@ function make_token(overrides: Partial<Token> = {}): Token {
   }
 }
 
+function make_map(overrides: Partial<GameMap> = {}): GameMap {
+  return {
+    id: 'map-1',
+    campaign_id: 'campaign-1',
+    name: 'The Sunken Spire — Ground Floor',
+    grid_width: 20,
+    grid_height: 20,
+    created_at: '2024-01-01T00:00:00.000Z',
+    ...overrides,
+  }
+}
+
 function render_map_viewmodel() {
   return renderHook(() => map_viewmodel())
+}
+
+function render_map_info(map_id: string | null) {
+  return renderHook(() => map_viewmodel().map_info_model(map_id))
 }
 
 beforeEach(() => {
@@ -365,5 +382,33 @@ describe('load_permissions', () => {
     ).rejects.toThrow('network error')
 
     expect(result.current.permissions).toEqual([])
+  })
+})
+
+describe('map_info_model', () => {
+  it('loads the map by id and exposes it once load_map_info resolves', async () => {
+    const map = make_map({ id: 'map-1', name: 'The Sunken Spire — Ground Floor' })
+    mock_map_api.get.mockResolvedValue(map)
+    const { result } = render_map_info('map-1')
+
+    expect(result.current.map).toBeNull()
+
+    await act(async () => {
+      await result.current.load_map_info()
+    })
+
+    expect(mock_map_api.get).toHaveBeenCalledWith('map-1')
+    expect(result.current.map).toEqual(map)
+  })
+
+  it('leaves map null and skips the API call when map_id is null', async () => {
+    const { result } = render_map_info(null)
+
+    await act(async () => {
+      await result.current.load_map_info()
+    })
+
+    expect(mock_map_api.get).not.toHaveBeenCalled()
+    expect(result.current.map).toBeNull()
   })
 })

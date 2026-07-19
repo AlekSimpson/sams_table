@@ -7,7 +7,7 @@ import { session_viewmodel } from "../viewmodels/session_viewmodel"
 import { notification_viewmodel } from "../viewmodels/notification_viewmodel"
 import { useParams } from 'react-router-dom'
 import CharacterSheet from './character_sheet'
-import MapScene from './todo_views/map_view/map_view'
+import PlayerMapPanel from './player_map_panel'
 import { DNDCharacter } from '../types/dnd_types'
 import { PlayerDashboardParameters } from "../types/app_types"
 import { Avatar, Button, Card, NotificationCenter, SessionStatusBar, Sidebar, SIDEBAR_COLLAPSED_STORAGE_KEY, TopBar } from './components'
@@ -161,17 +161,7 @@ export default function PlayerDashboard() {
           </div>
           <main className="player-dashboard__content">
             {model.current_tab === 'sheet' && <CharacterSheet character_id={character_id} />}
-            {model.current_tab === 'map' && (
-              active_map_id ? (
-                // Player view is always view-only: build tooling (tile placement, the
-                // asset catalogue) is DM-only and lives in dm_map_panel.tsx instead.
-                <MapScene mode="view" map_id={active_map_id} />
-              ) : (
-                <div className="scaffold-placeholder" style={{ margin: '32px', padding: '60px 20px' }}>
-                  Not in a session — join with a code to view the live map
-                </div>
-              )
-            )}
+            {model.current_tab === 'map' && <PlayerMapPanel active_map_id={active_map_id} />}
           </main>
         </Card>
       </div>
