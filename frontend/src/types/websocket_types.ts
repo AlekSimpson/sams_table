@@ -52,6 +52,12 @@ export interface TokenMovedPayload {
   grid_y: number
 }
 
+export interface DiceRollRequestPayload {
+  notation: string
+  character_id: string
+  roller_name: string
+}
+
 export interface DiceRollResultPayload {
   roller_id: string
   roller_name: string
