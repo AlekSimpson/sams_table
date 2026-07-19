@@ -27,7 +27,9 @@ export interface HPUpdatePayload {
 }
 
 export interface MapActivatedPayload {
-  map_id: string
+  // null means the DM has hidden the map from players (see map_viewmodel.ts's
+  // activate_map and websockets.ts's map_activated handling).
+  map_id: string | null
   tiles: MapTile[]
 }
 

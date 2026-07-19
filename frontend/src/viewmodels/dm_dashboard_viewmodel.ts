@@ -129,6 +129,18 @@ export function dm_dashboard_viewmodel() {
     }
   }
 
+  /** In-session map dropdown: list of maps for the active campaign. */
+  function map_selector_model(campaign_id: string) {
+    const [maps, set_maps] = useState<GameMap[]>([])
+
+    const load_maps = useCallback(async () => {
+      const loaded_maps = await campaign_api.list_maps(campaign_id)
+      set_maps(loaded_maps)
+    }, [campaign_id])
+
+    return { maps, load_maps }
+  }
+
   return {
     campaigns,
     selected_campaign,
@@ -146,5 +158,6 @@ export function dm_dashboard_viewmodel() {
     campaign_list_panel_model,
     campaign_card_model,
     campaign_detail_panel_model,
+    map_selector_model,
   }
 }

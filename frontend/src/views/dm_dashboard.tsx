@@ -3,6 +3,7 @@ import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { Button, Card, Panel, Sidebar, TopBar } from './components'
 import CampaignListPanel from './campaign_list_panel'
 import DmCombatControlsPanel from './dm_combat_controls_panel'
+import DmMapPanel from './dm_map_panel'
 import '../../styles/dm_dashboard.css'
 
 export default function DMDashboard() {
@@ -17,9 +18,13 @@ export default function DMDashboard() {
       {is_in_session ? (
         <div className="dm-dashboard__session-body">
           <main className="dm-dashboard__map-region">
-            <div className="scaffold-placeholder dm-dashboard__map-placeholder">
-              3D map view — coming soon
-            </div>
+            {selected_campaign ? (
+              <DmMapPanel campaign_id={selected_campaign.id} />
+            ) : (
+              <div className="scaffold-placeholder dm-dashboard__map-placeholder">
+                No campaign selected
+              </div>
+            )}
           </main>
 
           <Sidebar side="right" collapsible>
