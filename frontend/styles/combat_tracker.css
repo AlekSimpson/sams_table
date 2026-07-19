@@ -7,4 +7,37 @@
 
 .combat-tracker__content {
   padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.combat-tracker__roster {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.combat-tracker__character-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+}
+
+.combat-tracker__character-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.combat-tracker__character-hp {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.combat-tracker__character-conditions {
+  display: flex;
+  gap: var(--space-1);
 }
