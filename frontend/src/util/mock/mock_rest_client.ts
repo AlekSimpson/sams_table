@@ -204,4 +204,13 @@ export const mock_session_api = {
       if (!session) throw new Error(`Invalid join code: ${code}`)
       return session
     }),
+
+  end: (campaign_id: string) =>
+    resolve_after_latency((): void => {
+      // Invalidate every outstanding join code for this campaign so a stale code
+      // can't be used to join a session that's already ended.
+      for (const code of Object.keys(mock_store.join_codes)) {
+        if (mock_store.join_codes[code].campaign_id === campaign_id) delete mock_store.join_codes[code]
+      }
+    }),
 }

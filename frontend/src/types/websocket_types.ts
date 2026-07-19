@@ -11,6 +11,8 @@ export type WSEventType =
   | 'initiative_update'
   | 'visibility_toggle'
   | 'condition_update'
+  | 'player_joined'
+  | 'player_left'
 
 export interface WSEnvelope<T = unknown> {
   type: WSEventType
@@ -87,4 +89,15 @@ export interface VisibilityTogglePayload {
 export interface ConditionUpdatePayload {
   character_id: string
   conditions: string[]
+}
+
+export interface PlayerJoinedPayload {
+  campaign_id: string
+  user_id: string
+  character_name: string
+}
+
+export interface PlayerLeftPayload {
+  campaign_id: string
+  user_id: string
 }

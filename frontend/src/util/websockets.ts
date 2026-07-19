@@ -4,6 +4,7 @@ import { session_model } from '../models/session_model'
 import { map_model } from '../models/map_model'
 import { character_model } from '../models/character_model'
 import { combat_model } from '../models/combat_model'
+import { dm_dashboard_model } from '../models/dm_dashboard_model'
 import { WSEnvelope, WSEventType } from '../types/websocket_types'
 import { MOCK_MODE_ENABLED } from './mock/mock_config'
 import { MockWebSocket } from './mock/mock_websocket'
@@ -15,7 +16,9 @@ import {
   TokenMovedPayload,
   ConditionUpdatePayload,
   InitiativeUpdatePayload,
-  DiceRollResultPayload
+  DiceRollResultPayload,
+  PlayerJoinedPayload,
+  PlayerLeftPayload
 } from '../types/websocket_types'
 
 function dispatch_websocket_event(envelope: WSEnvelope) {
@@ -23,6 +26,7 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
   const map_state = map_model.getState()
   const character_state = character_model.getState()
   const combat_state = combat_model.getState()
+  const dm_dashboard_state = dm_dashboard_model.getState()
   const is_dm = session_model.getState().role === 'dm'
 
   switch (envelope.type as WSEventType) {
@@ -106,6 +110,20 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
       // TODO: route to combat store when implemented
       console.log('ws event (unhandled):', envelope.type, envelope.payload)
       break
+    case 'player_joined': {
+      // Presence list is DM-only UI (see dm_dashboard_model.joined_players); skip on
+      // player clients so this doesn't mutate a store nothing renders for them.
+      if (!is_dm) break
+      const p = envelope.payload as PlayerJoinedPayload
+      dm_dashboard_state.add_joined_player({ user_id: p.user_id, character_name: p.character_name })
+      break
+    }
+    case 'player_left': {
+      if (!is_dm) break
+      const p = envelope.payload as PlayerLeftPayload
+      dm_dashboard_state.remove_joined_player(p.user_id)
+      break
+    }
     default:
       console.warn('ws: unknown event type:', envelope.type)
   }

@@ -42,3 +42,11 @@ export interface SessionJoinResponse {
   campaign_id: string
   active_map_id: string | null
 }
+
+// A player currently present in the DM's live session (built from `player_joined`/
+// `player_left` WS events — see websocket_types.ts). Intentionally lighter than
+// DNDCharacter: presence events only carry who joined, not full character data.
+export interface JoinedPlayer {
+  user_id: string
+  character_name: string
+}

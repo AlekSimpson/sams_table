@@ -20,6 +20,7 @@ export function dm_dashboard_viewmodel() {
     set_active_map_id: set_active_map,
     add_joined_player,
     remove_joined_player,
+    clear_joined_players,
   } = dm_dashboard_model()
 
   const load_campaigns = useCallback(async () => {
@@ -52,7 +53,13 @@ export function dm_dashboard_viewmodel() {
     set_session(started_session)
   }, [set_session])
 
-  const end_session = () => set_session(null)
+  const end_session = useCallback(async () => {
+    const current_campaign = dm_dashboard_model.getState().selected_campaign
+    if (!current_campaign) return
+    await session_api.end(current_campaign.id)
+    set_session(null)
+    clear_joined_players()
+  }, [set_session, clear_joined_players])
 
   function dm_dashboard_shell_model() {
     const [current_tab, set_current_tab] = useState<DmDashboardTab>('campaigns')
@@ -129,6 +136,19 @@ export function dm_dashboard_viewmodel() {
     }
   }
 
+  /** In-session TopBar controls: copy-to-clipboard state for the join code. */
+  function session_controls_model(join_code: string) {
+    const [copied, set_copied] = useState(false)
+
+    const on_copy_press = async () => {
+      await navigator.clipboard.writeText(join_code)
+      set_copied(true)
+      setTimeout(() => set_copied(false), 1500)
+    }
+
+    return { copied, on_copy_press }
+  }
+
   /** In-session map dropdown: list of maps for the active campaign. */
   function map_selector_model(campaign_id: string) {
     const [maps, set_maps] = useState<GameMap[]>([])
@@ -158,6 +178,7 @@ export function dm_dashboard_viewmodel() {
     campaign_list_panel_model,
     campaign_card_model,
     campaign_detail_panel_model,
+    session_controls_model,
     map_selector_model,
   }
 }
