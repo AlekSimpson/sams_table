@@ -45,8 +45,9 @@ test('DM can run a full session: campaign, map, session, tile, combat controls',
   await expect(page).toHaveURL(/\/dm\/map-builder\//)
   await expect(page.locator('canvas')).toBeVisible()
 
-  // --- Back to the dashboard: campaign detail should now list the created map ---
-  await page.goBack()
+  // --- Exit the map builder via its top-bar button (not the browser back button):
+  // campaign detail should now list the created map ---
+  await page.getByRole('button', { name: 'Exit Map Builder' }).click()
   await expect(page).toHaveURL('/dm')
   await campaign_detail_panel.getByRole('button', { name: 'Maps' }).click()
   await expect(campaign_detail_panel.getByText(MAP_NAME, { exact: true })).toBeVisible()
