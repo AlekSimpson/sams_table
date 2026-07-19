@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  height: 100%;
+  min-height: 0;
 }
 
 .campaign-detail-panel__header {
@@ -48,6 +50,32 @@
 .campaign-detail-panel__character-meta {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+}
+
+.campaign-detail-panel__character-row--clickable {
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.campaign-detail-panel__character-row--clickable:hover {
+  background: var(--color-surface-hover);
+}
+
+.campaign-detail-panel__character-sheet-frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: var(--space-3);
+}
+
+.campaign-detail-panel__back-button {
+  align-self: flex-start;
+}
+
+.campaign-detail-panel__character-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .campaign-detail-panel__map-row {
