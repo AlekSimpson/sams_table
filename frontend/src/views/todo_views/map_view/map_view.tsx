@@ -14,7 +14,7 @@ interface MapSceneProps {
 }
 
 export default function MapScene({ mode, map_id }: MapSceneProps) {
-  const { tiles_loading, tiles_error, selected_asset_id, load_map, place_map_tile } = map_viewmodel()
+  const { tiles_loading, tiles_error, selected_asset, load_map, place_map_tile } = map_viewmodel()
   const [is_dragging_token, set_is_dragging_token] = useState(false)
 
   useEffect(() => {
@@ -24,11 +24,11 @@ export default function MapScene({ mode, map_id }: MapSceneProps) {
   // Builder click-to-place: the invisible ground plane's intersection point maps to grid
   // coordinates as [grid_x, grid_z] (ground plane), placing at elevation grid_y = 0.
   const handle_grid_click = (event: ThreeEvent<MouseEvent>) => {
-    if (mode !== 'build' || !selected_asset_id) return
+    if (mode !== 'build' || !selected_asset) return
     event.stopPropagation()
     place_map_tile(map_id, {
-      asset_id: selected_asset_id,
-      asset_source: 'default',
+      asset_id: selected_asset.id,
+      asset_source: selected_asset.source,
       grid_x: Math.round(event.point.x),
       grid_y: 0,
       grid_z: Math.round(event.point.z),

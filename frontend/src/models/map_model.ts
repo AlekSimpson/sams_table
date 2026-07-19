@@ -1,6 +1,6 @@
 // MODEL layer — raw map/tile state. Views must not import this directly; use map_viewmodel instead.
 import { create } from 'zustand'
-import { MapTile } from '../types/game_types'
+import { MapTile, SelectedAsset } from '../types/game_types'
 import { Token } from '../types/game_types'
 
 export type MapMode = 'view' | 'build'
@@ -9,7 +9,7 @@ interface MapState {
   active_map_id: string | null
   tiles: MapTile[]
   tokens: Token[]
-  selected_asset_id: string | null
+  selected_asset: SelectedAsset | null
   mode: MapMode
   // True while the initial REST tile load for active_map_id is in flight.
   // Read by websockets.ts to avoid applying map_tile_placed/map_tile_removed
@@ -20,7 +20,7 @@ interface MapState {
 interface MapActions {
   set_active_map: (mapID: string | null, tiles: MapTile[]) => void
   set_mode: (mode: MapMode) => void
-  set_selected_asset: (assetID: string | null) => void
+  set_selected_asset: (asset: SelectedAsset | null) => void
   place_tile: (tile: MapTile) => void
   remove_tile: (tileID: string) => void
   move_token: (tokenID: string, gridX: number, gridY: number) => void
@@ -36,7 +36,7 @@ export const map_model = create<MapModel>()((set) => ({
   active_map_id: null,
   tiles: [],
   tokens: [],
-  selected_asset_id: null,
+  selected_asset: null,
   mode: 'view',
   tiles_loading: false,
 
@@ -44,7 +44,7 @@ export const map_model = create<MapModel>()((set) => ({
 
   set_mode: (mode) => set({ mode }),
 
-  set_selected_asset: (asset_ID) => set({ selected_asset_id: asset_ID }),
+  set_selected_asset: (asset) => set({ selected_asset: asset }),
 
   place_tile: (tile) =>
     set((state) => ({
@@ -76,7 +76,7 @@ export const map_model = create<MapModel>()((set) => ({
     active_map_id: null,
     tiles: [],
     tokens: [],
-    selected_asset_id: null,
+    selected_asset: null,
     mode: 'view',
     tiles_loading: false,
   }),

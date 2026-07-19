@@ -20,7 +20,7 @@ interface AssetCatalogPanelProps {
 }
 
 export default function AssetCatalogPanel({ campaign_id }: AssetCatalogPanelProps) {
-  const { selected_asset_id, set_selected_asset } = map_viewmodel()
+  const { selected_asset, set_selected_asset } = map_viewmodel()
   const { uploaded_assets, list_campaign_assets } = asset_viewmodel()
   const [asset_type_filter, set_asset_type_filter] = useState<AssetTypeFilter>('all')
   const [is_upload_form_visible, set_is_upload_form_visible] = useState(false)
@@ -54,9 +54,9 @@ export default function AssetCatalogPanel({ campaign_id }: AssetCatalogPanelProp
           {DEFAULT_ASSETS.map((id) => (
             <Button
               key={id}
-              variant={selected_asset_id === id ? 'secondary' : 'ghost'}
+              variant={selected_asset?.id === id ? 'secondary' : 'ghost'}
               size="small"
-              onClick={() => set_selected_asset(id)}
+              onClick={() => set_selected_asset({ id, source: 'default' })}
             >
               {id}
             </Button>
@@ -97,8 +97,8 @@ export default function AssetCatalogPanel({ campaign_id }: AssetCatalogPanelProp
             {filtered_assets.map((asset) => (
               <Card
                 key={asset.id}
-                className={`asset-card${selected_asset_id === asset.id ? ' asset-card--selected' : ''}`}
-                onClick={() => set_selected_asset(asset.id)}
+                className={`asset-card${selected_asset?.id === asset.id ? ' asset-card--selected' : ''}`}
+                onClick={() => set_selected_asset({ id: asset.id, source: 'uploaded' })}
               >
                 <div className="asset-card__thumbnail" aria-hidden="true">No preview</div>
                 <div className="asset-card__label">{asset.label}</div>
