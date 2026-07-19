@@ -1,7 +1,8 @@
 // VIEWMODEL layer — DM dashboard logic. The only DM-dashboard-related import Views need.
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
 import { campaign_api, session_api } from '../util/rest_client'
+import { DmDashboardTab } from '../types/app_types'
 
 export function dm_dashboard_viewmodel() {
   const {
@@ -33,6 +34,21 @@ export function dm_dashboard_viewmodel() {
 
   const end_session = () => set_session(null)
 
+  function dm_dashboard_shell_model() {
+    const [current_tab, set_current_tab] = useState<DmDashboardTab>('campaigns')
+
+    const on_campaigns_tab_press = () => set_current_tab('campaigns')
+    const on_maps_tab_press = () => set_current_tab('maps')
+    const on_characters_tab_press = () => set_current_tab('characters')
+
+    return {
+      current_tab,
+      on_campaigns_tab_press,
+      on_maps_tab_press,
+      on_characters_tab_press,
+    }
+  }
+
   return {
     selected_campaign,
     session,
@@ -44,5 +60,6 @@ export function dm_dashboard_viewmodel() {
     set_active_map,
     add_joined_player,
     remove_joined_player,
+    dm_dashboard_shell_model,
   }
 }

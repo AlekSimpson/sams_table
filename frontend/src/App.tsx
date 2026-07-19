@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { session_viewmodel } from './viewmodels/session_viewmodel'
 import Login from './views/login'
 import Register from './views/register'
-import DMDashboard from './views/todo_views/DMDashboard'
+import DMDashboard from './views/dm_dashboard'
 import PlayerView from './views/player_view'
 import MapBuilder from './views/todo_views/MapBuilder'
 import PlayerDashboard from './views/player_dashboard'
