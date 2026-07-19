@@ -1,6 +1,7 @@
 // VIEW layer — DM dashboard shell (pre-session sidebar nav vs. in-session map + control sidebar)
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { Button, Card, Panel, Sidebar, TopBar } from './components'
+import CampaignListPanel from './campaign_list_panel'
 import '../../styles/dm_dashboard.css'
 
 export default function DMDashboard() {
@@ -70,9 +71,7 @@ export default function DMDashboard() {
 
           <Card className="dm-dashboard__panel">
             <main className="dm-dashboard__content">
-              {model.current_tab === 'campaigns' && (
-                <div className="scaffold-placeholder">Campaign list — coming soon</div>
-              )}
+              {model.current_tab === 'campaigns' && <CampaignListPanel />}
               {model.current_tab === 'maps' && (
                 <div className="scaffold-placeholder">Maps — coming soon</div>
               )}
