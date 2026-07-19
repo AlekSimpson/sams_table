@@ -4,7 +4,7 @@ import Login from './views/login'
 import Register from './views/register'
 import DMDashboard from './views/dm_dashboard'
 import PlayerView from './views/player_view'
-import MapBuilder from './views/todo_views/MapBuilder'
+import MapBuilder from './views/map_builder'
 import PlayerDashboard from './views/player_dashboard'
 
 /** Redirects to /login if no valid session exists. */

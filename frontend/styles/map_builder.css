@@ -1,0 +1,24 @@
+.map-builder {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Overlays the top bar on top of the full-bleed 3D canvas rather than shrinking it —
+   same "floating glass chrome over content" treatment as asset-catalogue-panel.css. */
+.map-builder__top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+/* asset-catalogue-panel.css positions the panel at top: var(--space-4), which would
+   sit underneath the new top bar (min-height: 56px, see top_bar.css) — push it down to
+   clear the bar while keeping its own left/top-of-canvas gutter. Scoped to this route
+   only; the panel's own file/styling stay untouched for dm_map_panel's usage. */
+.map-builder .asset-catalogue-panel {
+  top: calc(56px + var(--space-4));
+  max-height: calc(100% - 56px - var(--space-4) - var(--space-4));
+}
