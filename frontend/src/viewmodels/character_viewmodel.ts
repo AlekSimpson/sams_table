@@ -2,7 +2,7 @@ import { character_api } from '../util/rest_client'
 import { Tab, DashboardTab } from '../types/app_types'
 import { DNDCharacter } from '../types/dnd_types'
 import { character_model } from '../models/character_model'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const ABILITIES: { key: string; label: string; }[] = [
@@ -73,6 +73,12 @@ export function character_viewmodel() {
     const [active_tab, set_active_tab]     = useState<Tab>('combat')
     const [inspiration, set_inspiration]   = useState(false)
 
+    // Holds the pre-edit value for a field currently being edited, so a failed
+    // save can roll the optimistic update back. Reset to null once committed.
+    const hp_value_before_edit    = useRef<number | null>(null)
+    const notes_value_before_edit = useRef<string | null>(null)
+    const notes_debounce_timeout  = useRef<ReturnType<typeof setTimeout> | null>(null)
+
     const patch      = (partial_character: Partial<DNDCharacter>) => update_character(character.id, partial_character)
     const patch_stat = (key: string, value: number) =>
       patch({ stats: { ...character.stats, [key]: value } })
@@ -80,12 +86,97 @@ export function character_viewmodel() {
     const on_name_change        = (event: React.ChangeEvent<HTMLInputElement>) => patch({ name: event.target.value })
     const on_class_change       = (event: React.ChangeEvent<HTMLInputElement>) => patch({ class: event.target.value })
     const on_race_change        = (event: React.ChangeEvent<HTMLInputElement>) => patch({ race: event.target.value })
-    const on_current_hp_change  = (event: React.ChangeEvent<HTMLInputElement>) => patch({ current_hp: parseInt(event.target.value) })
     const on_max_hp_change      = (event: React.ChangeEvent<HTMLInputElement>) => patch({ max_hp: parseInt(event.target.value) })
     const on_ac_change          = (event: React.ChangeEvent<HTMLInputElement>) => patch({ armor_class: parseInt(event.target.value) })
     const on_speed_change       = (event: React.ChangeEvent<HTMLInputElement>) => patch({ speed: parseInt(event.target.value) })
     const on_level_change       = (event: React.ChangeEvent<HTMLInputElement>) => patch({ level: parseInt(event.target.value) })
     const on_inspiration_toggle = () => set_inspiration(!inspiration)
+
+    // Current HP is a transient, frequently-edited field: update local state on every
+    // keystroke (optimistic, no network call), then persist once editing settles (on
+    // blur, or immediately for the +/- stepper buttons since those have no blur event).
+    // On a failed save, roll back to the value captured before the edit started.
+    const commit_current_hp = async (next_current_hp: number, previous_current_hp: number) => {
+      try {
+        const server_updated = await character_api.update(character.id, { current_hp: next_current_hp })
+        set_character(server_updated)
+      } catch {
+        set_character({ ...character, current_hp: previous_current_hp })
+      }
+    }
+
+    const on_current_hp_focus = () => {
+      hp_value_before_edit.current = character.current_hp
+    }
+
+    const on_current_hp_change = (event: React.ChangeEvent<HTMLInputElement>) =>
+      set_character({ ...character, current_hp: parseInt(event.target.value) })
+
+    const on_current_hp_blur = () => {
+      const previous_current_hp = hp_value_before_edit.current ?? character.current_hp
+      hp_value_before_edit.current = null
+      commit_current_hp(character.current_hp, previous_current_hp)
+    }
+
+    const on_current_hp_step = (delta: number) => () => {
+      const previous_current_hp = character.current_hp
+      const next_current_hp = Math.max(0, Math.min(character.max_hp, character.current_hp + delta))
+      set_character({ ...character, current_hp: next_current_hp })
+      commit_current_hp(next_current_hp, previous_current_hp)
+    }
+
+    // Notes: optimistic on every keystroke, save debounced 500ms after typing stops.
+    const commit_notes = async (next_notes: string, previous_notes: string) => {
+      try {
+        const server_updated = await character_api.update(character.id, { notes: next_notes })
+        set_character(server_updated)
+      } catch {
+        set_character({ ...character, notes: previous_notes })
+      }
+    }
+
+    const on_notes_change = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const next_notes = event.target.value
+      if (notes_value_before_edit.current === null) {
+        notes_value_before_edit.current = character.notes
+      }
+      set_character({ ...character, notes: next_notes })
+
+      if (notes_debounce_timeout.current !== null) {
+        clearTimeout(notes_debounce_timeout.current)
+      }
+      notes_debounce_timeout.current = setTimeout(() => {
+        const previous_notes = notes_value_before_edit.current ?? next_notes
+        notes_value_before_edit.current = null
+        commit_notes(next_notes, previous_notes)
+      }, 500)
+    }
+
+    // Equipment: add/remove items, optimistic + saved immediately on each change.
+    const commit_equipment = async (next_equipment: string[], previous_equipment: string[]) => {
+      try {
+        const server_updated = await character_api.update(character.id, { equipment: next_equipment })
+        set_character(server_updated)
+      } catch {
+        set_character({ ...character, equipment: previous_equipment })
+      }
+    }
+
+    const on_equipment_add = (item_name: string) => {
+      const trimmed_item_name = item_name.trim()
+      if (!trimmed_item_name) return
+      const previous_equipment = character.equipment
+      const next_equipment = [...character.equipment, trimmed_item_name]
+      set_character({ ...character, equipment: next_equipment })
+      commit_equipment(next_equipment, previous_equipment)
+    }
+
+    const on_equipment_remove = (item_index: number) => {
+      const previous_equipment = character.equipment
+      const next_equipment = character.equipment.filter((_, index) => index !== item_index)
+      set_character({ ...character, equipment: next_equipment })
+      commit_equipment(next_equipment, previous_equipment)
+    }
 
     // for loop-rendered inputs
     const on_stat_change = (key: string) => (event: React.ChangeEvent<HTMLInputElement>) => patch_stat(key, parseInt(event.target.value))
@@ -120,6 +211,9 @@ export function character_viewmodel() {
       on_class_change,
       on_race_change,
       on_current_hp_change,
+      on_current_hp_focus,
+      on_current_hp_blur,
+      on_current_hp_step,
       on_max_hp_change,
       on_ac_change,
       on_speed_change,
@@ -127,6 +221,9 @@ export function character_viewmodel() {
       on_inspiration_toggle,
       on_stat_change,
       on_tab_select,
+      on_notes_change,
+      on_equipment_add,
+      on_equipment_remove,
       is_skill_proficient,
       format_skill_modifier,
       bonus,

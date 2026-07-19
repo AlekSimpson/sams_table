@@ -1,8 +1,8 @@
 // VIEW layer — full character sheet display
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
 import { CharacterSheetProps } from '../types/app_types'
-import { Avatar, Button, Card, Panel, Sidebar } from './components'
+import { Avatar, Button, Card, Input, Panel, Sidebar } from './components'
 import ConditionBadge from './condition_badge'
 import '../../styles/character_sheet.css'
 
@@ -62,16 +62,57 @@ function ScaffoldTab({ label }: { label: string }) {
   )
 }
 
-function EquipmentTab({ equipment }: { equipment: string[] }) {
+function EquipmentTab({
+  equipment,
+  on_equipment_add,
+  on_equipment_remove,
+}: {
+  equipment: string[]
+  on_equipment_add: (item_name: string) => void
+  on_equipment_remove: (item_index: number) => void
+}) {
+  const [new_item_name, set_new_item_name] = useState('')
+
+  const on_add_click = () => {
+    on_equipment_add(new_item_name)
+    set_new_item_name('')
+  }
+
+  const on_new_item_key_down = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      on_add_click()
+    }
+  }
+
   return (
     <div className="cs__section">
       <div className="cs__section-label">Equipment</div>
+      <div className="cs__equipment-add-row">
+        <Input
+          value={new_item_name}
+          onChange={(event) => set_new_item_name(event.target.value)}
+          onKeyDown={on_new_item_key_down}
+          placeholder="Add equipment item"
+        />
+        <Button variant="secondary" size="small" onClick={on_add_click}>Add</Button>
+      </div>
       {equipment.length === 0 ? (
         <div className="cs__attacks-empty">No equipment added yet</div>
       ) : (
         <ul className="cs__equipment-list">
           {equipment.map((item, item_index) => (
-            <li key={item_index} className="cs__equipment-item">{item}</li>
+            <li key={item_index} className="cs__equipment-item">
+              <span>{item}</span>
+              <button
+                type="button"
+                className="cs__equipment-remove"
+                onClick={() => on_equipment_remove(item_index)}
+                aria-label={`Remove ${item}`}
+              >
+                ×
+              </button>
+            </li>
           ))}
         </ul>
       )}
@@ -93,10 +134,8 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
   const hp_pct = model.health_percentage
   const hp_color = hp_pct > 50 ? 'var(--color-success)' : hp_pct > 25 ? 'var(--color-warning)' : 'var(--color-danger)'
 
-  const on_hp_dec = () =>
-    model.on_current_hp_change({ target: { value: String(Math.max(0, character.current_hp - 1)) } } as unknown as React.ChangeEvent<HTMLInputElement>)
-  const on_hp_inc = () =>
-    model.on_current_hp_change({ target: { value: String(Math.min(character.max_hp, character.current_hp + 1)) } } as unknown as React.ChangeEvent<HTMLInputElement>)
+  const on_hp_dec = model.on_current_hp_step(-1)
+  const on_hp_inc = model.on_current_hp_step(1)
 
   const ability_mod_color = (score: number) => {
     const modifier = model.ability_modifier(score)
@@ -218,6 +257,8 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
                 type="number"
                 value={character.current_hp}
                 onChange={model.on_current_hp_change}
+                onFocus={model.on_current_hp_focus}
+                onBlur={model.on_current_hp_blur}
                 style={{ color: hp_color }}
                 title="Current HP"
               />
@@ -304,10 +345,21 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
           <div className="cs__tab-content">
             {model.active_tab === 'combat'    && <CombatTab />}
             {model.active_tab === 'spells'    && <ScaffoldTab label="Spells" />}
-            {model.active_tab === 'equipment' && <EquipmentTab equipment={character.equipment} />}
+            {model.active_tab === 'equipment' && (
+              <EquipmentTab
+                equipment={character.equipment}
+                on_equipment_add={model.on_equipment_add}
+                on_equipment_remove={model.on_equipment_remove}
+              />
+            )}
             {model.active_tab === 'features'  && <ScaffoldTab label="Features & Traits" />}
             {model.active_tab === 'notes'     && (
-              <textarea className="cs__notes" value={character.notes} placeholder="No notes yet" readOnly />
+              <textarea
+                className="cs__notes"
+                value={character.notes}
+                placeholder="No notes yet"
+                onChange={model.on_notes_change}
+              />
             )}
           </div>
 
