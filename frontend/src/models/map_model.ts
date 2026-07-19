@@ -18,7 +18,7 @@ interface MapState {
 }
 
 interface MapActions {
-  set_active_map: (mapID: string, tiles: MapTile[]) => void
+  set_active_map: (mapID: string | null, tiles: MapTile[]) => void
   set_mode: (mode: MapMode) => void
   set_selected_asset: (assetID: string | null) => void
   place_tile: (tile: MapTile) => void

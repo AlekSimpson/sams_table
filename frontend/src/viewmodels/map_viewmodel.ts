@@ -13,10 +13,11 @@ export function map_viewmodel() {
   const [tiles_error, set_tiles_error] = useState<string | null>(null)
   const [permissions, set_permissions] = useState<CampaignPermissionEntry[]>([])
 
-  /** DM: broadcast map_activated, triggering a full tile sync for all clients. */
+  /** DM: broadcast map_activated, triggering a full tile sync for all clients.
+   *  Pass null to hide the map from players (broadcasts an empty snapshot). */
   const activate_map = useCallback(
-    async (map_ID: string) => {
-      const tiles = await map_api.getTiles(map_ID)
+    async (map_ID: string | null) => {
+      const tiles = map_ID ? await map_api.getTiles(map_ID) : []
       send<MapActivatedPayload>('map_activated', { map_id: map_ID, tiles })
     },
     [send]

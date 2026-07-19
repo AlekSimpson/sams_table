@@ -23,6 +23,7 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
   const map_state = map_model.getState()
   const character_state = character_model.getState()
   const combat_state = combat_model.getState()
+  const is_dm = session_model.getState().role === 'dm'
 
   switch (envelope.type as WSEventType) {
     case 'hp_update': {
@@ -32,6 +33,12 @@ function dispatch_websocket_event(envelope: WSEnvelope) {
     }
     case 'map_activated': {
       const p = envelope.payload as MapActivatedPayload
+      // A null map_id is the DM's "hide map from players" broadcast. It's meant
+      // to blank players' view only — the DM's own dashboard renders whichever
+      // map is selected in dm_dashboard_model.active_map_id, independent of this
+      // broadcast, so skip applying it on the DM's own client (otherwise the DM
+      // would blank its own map when its own broadcast echoes back to it).
+      if (p.map_id === null && is_dm) break
       // This payload is a full, authoritative tile snapshot for the newly
       // activated map, so it always applies immediately — it also supersedes
       // any in-flight REST load_map for a different map (see map_viewmodel.ts's
