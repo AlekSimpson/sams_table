@@ -44,6 +44,16 @@
   justify-content: center;
 }
 
+/* The in-session control sidebar hosts per-character rows (HP inputs, initiative
+   inputs, condition badges, permission toggles) that are denser than what the shared
+   Sidebar primitive's default 280px width comfortably fits. Widen just this usage
+   (scoped by class, not the primitive) without affecting Sidebar's other consumers.
+   :not(.sidebar--collapsed) keeps this from ever outranking sidebar.css's own
+   collapsed-state width regardless of stylesheet import order. */
+.dm-dashboard__control-sidebar:not(.sidebar--collapsed) {
+  width: 320px;
+}
+
 .dm-dashboard__control-sections {
   display: flex;
   flex-direction: column;
