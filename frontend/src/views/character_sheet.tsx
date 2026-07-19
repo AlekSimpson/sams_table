@@ -2,9 +2,34 @@
 import { useEffect, useState } from 'react'
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
 import { CharacterSheetProps } from '../types/app_types'
+import { DNDCharacter } from '../types/dnd_types'
 import { Avatar, Button, Card, Input, Panel, Sidebar } from './components'
 import ConditionBadge from './condition_badge'
 import '../../styles/character_sheet.css'
+
+// Placeholder passed to character_sheet_model() when the real character hasn't
+// loaded yet, so that model's hooks are still called unconditionally on every
+// render (see CharacterSheet below) — its values are never rendered since the
+// "not found" early-return happens after the model is created but before any
+// JSX referencing it is produced.
+const placeholder_character: DNDCharacter = {
+  id: '',
+  campaign_id: '',
+  name: '',
+  class: '',
+  race: '',
+  level: 0,
+  max_hp: 0,
+  current_hp: 0,
+  armor_class: 0,
+  speed: 0,
+  stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+  skill_profs: [],
+  conditions: [],
+  equipment: [],
+  notes: '',
+  created_at: '',
+}
 
 function CombatTab() {
   return (
@@ -128,8 +153,8 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
   }, [character_id])
 
   const character = characters[character_id]
+  const model = character_sheet_model(character ?? placeholder_character)
   if (!character) return <div className="cs__not-found">Character not found</div>
-  const model = character_sheet_model(character)
 
   const hp_pct = model.health_percentage
   const hp_color = hp_pct > 50 ? 'var(--color-success)' : hp_pct > 25 ? 'var(--color-warning)' : 'var(--color-danger)'
