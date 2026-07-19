@@ -210,26 +210,33 @@ describe('place_map_tile', () => {
     mock_map_api.putTiles.mockResolvedValue(undefined)
     const { result } = render_map_viewmodel()
 
+    let did_placement_succeed!: boolean
     await act(async () => {
-      await result.current.place_map_tile('map-1', new_tile_data)
+      did_placement_succeed = await result.current.place_map_tile('map-1', new_tile_data)
     })
 
     expect(map_model.getState().tiles).toHaveLength(1)
     expect(map_model.getState().tiles[0]).toMatchObject({ ...new_tile_data, map_id: 'map-1' })
     expect(mock_map_api.putTiles).toHaveBeenCalledWith('map-1', map_model.getState().tiles)
     expect(result.current.tiles_error).toBeNull()
+    // A caller (e.g. the map builder view) relies on this resolved value to know
+    // whether to surface a placement confirmation.
+    expect(did_placement_succeed).toBe(true)
   })
 
   it('keeps the optimistic tile but sets tiles_error when persisting fails', async () => {
     mock_map_api.putTiles.mockRejectedValue(new Error('save failed'))
     const { result } = render_map_viewmodel()
 
+    let did_placement_succeed!: boolean
     await act(async () => {
-      await result.current.place_map_tile('map-1', new_tile_data)
+      did_placement_succeed = await result.current.place_map_tile('map-1', new_tile_data)
     })
 
     expect(map_model.getState().tiles).toHaveLength(1)
     expect(result.current.tiles_error).toBe('save failed')
+    // A failed persist must not resolve truthy, so callers don't show a confirmation.
+    expect(did_placement_succeed).toBe(false)
   })
 })
 

@@ -5,7 +5,7 @@ import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { map_viewmodel } from '../viewmodels/map_viewmodel'
 import MapScene from './todo_views/map_view/map_view'
 import AssetCatalogPanel from './todo_views/map_view/asset_catalogue_panel'
-import { Button, Panel } from './components'
+import { Button, Panel, Toast } from './components'
 import '../../styles/dm_map_panel.css'
 
 interface DmMapPanelProps {
@@ -17,6 +17,11 @@ export default function DmMapPanel({ campaign_id }: DmMapPanelProps) {
   const { maps, load_maps } = map_selector_model(campaign_id)
   const { activate_map } = map_viewmodel()
   const [is_hidden_from_players, set_is_hidden_from_players] = useState(false)
+  // Incremented on every successful tile placement; used as the Toast's `key` so a
+  // repeat placement (even with the same message) remounts it and restarts the timer.
+  const [tile_placement_confirmation_key, set_tile_placement_confirmation_key] = useState(0)
+
+  const on_tile_placed = () => set_tile_placement_confirmation_key((previous_key) => previous_key + 1)
 
   useEffect(() => {
     load_maps()
@@ -62,8 +67,11 @@ export default function DmMapPanel({ campaign_id }: DmMapPanelProps) {
       <div className="dm-map-panel__canvas">
         {active_map_id ? (
           <>
-            <MapScene mode="build" map_id={active_map_id} />
+            <MapScene mode="build" map_id={active_map_id} on_tile_placed={on_tile_placed} />
             <AssetCatalogPanel campaign_id={campaign_id} />
+            {tile_placement_confirmation_key > 0 && (
+              <Toast key={tile_placement_confirmation_key} message="Tile placed" />
+            )}
           </>
         ) : (
           <div className="scaffold-placeholder">Select a map to begin</div>
