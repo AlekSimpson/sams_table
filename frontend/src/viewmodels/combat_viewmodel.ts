@@ -1,8 +1,17 @@
 // VIEWMODEL layer — combat/initiative/dice logic. The only combat-related import Views need.
 import { useCallback, useEffect, useState } from 'react'
-import { DiceRollRequestPayload, DiceRollResultPayload, InitiativeEntry, InitiativeUpdatePayload } from '../types/websocket_types'
+import {
+  ConditionUpdatePayload,
+  DiceRollRequestPayload,
+  DiceRollResultPayload,
+  HPUpdatePayload,
+  InitiativeEntry,
+  InitiativeUpdatePayload,
+} from '../types/websocket_types'
 import { DNDCharacter } from '../types/dnd_types'
 import { combat_model } from '../models/combat_model'
+import { character_model } from '../models/character_model'
+import { character_api } from '../util/rest_client'
 import { websocket_hook } from '../util/websockets'
 
 // Standard dice notation: NdM optionally followed by +K or -K, e.g. "2d6+3", "1d20", "4d8-2".
@@ -11,6 +20,18 @@ const DICE_NOTATION_PATTERN = /^\d+d\d+([+-]\d+)?$/i
 export function is_valid_dice_notation(notation: string): boolean {
   return DICE_NOTATION_PATTERN.test(notation.trim())
 }
+
+// A representative subset of D&D 5e conditions for the DM's quick-toggle chips.
+export const COMBAT_CONDITIONS: string[] = [
+  'poisoned',
+  'stunned',
+  'blinded',
+  'prone',
+  'restrained',
+  'frightened',
+  'grappled',
+  'paralyzed',
+]
 
 export function combat_viewmodel() {
   const { initiative_order, last_dice_roll_result, dice_roll_history } = combat_model()
@@ -37,6 +58,49 @@ export function combat_viewmodel() {
   const roll_dice = useCallback(
     (notation: string, character_id: string, roller_name: string) => {
       send<DiceRollRequestPayload>('dice_roll_request', { notation, character_id, roller_name })
+    },
+    [send]
+  )
+
+  /** DM: persist a character's current HP via REST (optimistic update, same pattern as
+   *  character_viewmodel's update_character) and broadcast hp_update so other connected
+   *  clients see the change live — REST alone only updates the caller, not other clients. */
+  const update_character_hp = useCallback(
+    async (character_id: string, new_current_hp: number) => {
+      if (Number.isNaN(new_current_hp)) return
+      const target_character = character_model.getState().characters[character_id]
+      if (!target_character) return
+      const clamped_hp = Math.max(0, Math.min(target_character.max_hp, new_current_hp))
+      const optimistic = { ...target_character, current_hp: clamped_hp }
+      character_model.getState().set_character(optimistic)
+      const server_updated = await character_api.update(character_id, optimistic)
+      character_model.getState().set_character(server_updated)
+      send<HPUpdatePayload>('hp_update', {
+        character_id,
+        current_hp: server_updated.current_hp,
+        max_hp: server_updated.max_hp,
+      })
+    },
+    [send]
+  )
+
+  /** DM: toggle a condition on/off for a character — persists via REST then broadcasts
+   *  condition_update, mirroring update_character_hp's dual REST + WS approach. */
+  const toggle_character_condition = useCallback(
+    async (character_id: string, condition: string) => {
+      const target_character = character_model.getState().characters[character_id]
+      if (!target_character) return
+      const updated_conditions = target_character.conditions.includes(condition)
+        ? target_character.conditions.filter((existing_condition) => existing_condition !== condition)
+        : [...target_character.conditions, condition]
+      const optimistic = { ...target_character, conditions: updated_conditions }
+      character_model.getState().set_character(optimistic)
+      const server_updated = await character_api.update(character_id, optimistic)
+      character_model.getState().set_character(server_updated)
+      send<ConditionUpdatePayload>('condition_update', {
+        character_id,
+        conditions: server_updated.conditions,
+      })
     },
     [send]
   )
@@ -152,6 +216,8 @@ export function combat_viewmodel() {
     set_initiative,
     advance_turn,
     roll_dice,
+    update_character_hp,
+    toggle_character_condition,
     initiative_input_model,
     dice_roller_model,
     dice_roll_history,

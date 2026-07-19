@@ -2,6 +2,7 @@
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { Button, Card, Panel, Sidebar, TopBar } from './components'
 import CampaignListPanel from './campaign_list_panel'
+import DmCombatControlsPanel from './dm_combat_controls_panel'
 import '../../styles/dm_dashboard.css'
 
 export default function DMDashboard() {
@@ -24,12 +25,12 @@ export default function DMDashboard() {
           <Sidebar side="right" collapsible>
             <div className="dm-dashboard__control-sections">
               <Panel>
-                <span className="section-label">Initiative</span>
-                <div className="scaffold-placeholder">Initiative — coming soon</div>
-              </Panel>
-              <Panel>
                 <span className="section-label">Combat Controls</span>
-                <div className="scaffold-placeholder">Combat controls — coming soon</div>
+                {selected_campaign ? (
+                  <DmCombatControlsPanel campaign_id={selected_campaign.id} />
+                ) : (
+                  <div className="scaffold-placeholder">Combat controls — coming soon</div>
+                )}
               </Panel>
               <Panel>
                 <span className="section-label">Permissions</span>
