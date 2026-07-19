@@ -4,6 +4,7 @@ import { DNDCampaign, DNDCharacter } from '../types/dnd_types'
 import { SessionStartResponse } from '../types/app_types'
 
 interface DmDashboardState {
+  campaigns: DNDCampaign[]
   selected_campaign: DNDCampaign | null
   session: SessionStartResponse | null
   active_map_id: string | null
@@ -11,6 +12,8 @@ interface DmDashboardState {
 }
 
 interface DmDashboardActions {
+  set_campaigns: (campaigns: DNDCampaign[]) => void
+  add_campaign: (campaign: DNDCampaign) => void
   set_selected_campaign: (campaign: DNDCampaign | null) => void
   set_session: (session: SessionStartResponse | null) => void
   set_active_map_id: (map_id: string | null) => void
@@ -21,10 +24,15 @@ interface DmDashboardActions {
 type DmDashboardModel = DmDashboardState & DmDashboardActions
 
 export const dm_dashboard_model = create<DmDashboardModel>()((set) => ({
+  campaigns: [],
   selected_campaign: null,
   session: null,
   active_map_id: null,
   joined_players: [],
+
+  set_campaigns: (campaigns) => set({ campaigns }),
+
+  add_campaign: (campaign) => set((state) => ({ campaigns: [...state.campaigns, campaign] })),
 
   set_selected_campaign: (campaign) => set({ selected_campaign: campaign }),
 

@@ -3,19 +3,36 @@ import { useCallback, useState } from 'react'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
 import { campaign_api, session_api } from '../util/rest_client'
 import { DmDashboardTab } from '../types/app_types'
+import { DNDCampaign } from '../types/dnd_types'
 
 export function dm_dashboard_viewmodel() {
   const {
+    campaigns,
     selected_campaign,
     session,
     active_map_id,
     joined_players,
+    set_campaigns,
+    add_campaign,
     set_selected_campaign,
     set_session,
     set_active_map_id: set_active_map,
     add_joined_player,
     remove_joined_player,
   } = dm_dashboard_model()
+
+  const load_campaigns = useCallback(async () => {
+    const loaded_campaigns = await campaign_api.list()
+    set_campaigns(loaded_campaigns)
+  }, [set_campaigns])
+
+  const create_campaign = useCallback(
+    async (name: string, description?: string) => {
+      const new_campaign = await campaign_api.create(name, description)
+      add_campaign(new_campaign)
+    },
+    [add_campaign]
+  )
 
   const select_campaign = useCallback(
     async (campaign_id: string) => {
@@ -24,6 +41,8 @@ export function dm_dashboard_viewmodel() {
     },
     [set_selected_campaign]
   )
+
+  const deselect_campaign = useCallback(() => set_selected_campaign(null), [set_selected_campaign])
 
   const start_session = useCallback(async () => {
     const current_campaign = dm_dashboard_model.getState().selected_campaign
@@ -49,11 +68,44 @@ export function dm_dashboard_viewmodel() {
     }
   }
 
+  function campaign_list_panel_model() {
+    const [name, set_name] = useState('')
+    const [description, set_description] = useState('')
+
+    const on_name_change = (event: React.ChangeEvent<HTMLInputElement>) => set_name(event.target.value)
+    const on_description_change = (event: React.ChangeEvent<HTMLTextAreaElement>) => set_description(event.target.value)
+
+    const on_create_press = () => {
+      if (!name.trim()) return
+      create_campaign(name.trim(), description.trim() || undefined)
+      set_name('')
+      set_description('')
+    }
+
+    const on_back_press = () => deselect_campaign()
+
+    return {
+      name,
+      description,
+      on_name_change,
+      on_description_change,
+      on_create_press,
+      on_back_press,
+    }
+  }
+
+  function campaign_card_model(campaign: DNDCampaign) {
+    const on_card_click = () => select_campaign(campaign.id)
+    return { on_card_click }
+  }
+
   return {
+    campaigns,
     selected_campaign,
     session,
     active_map_id,
     joined_players,
+    load_campaigns,
     select_campaign,
     start_session,
     end_session,
@@ -61,5 +113,7 @@ export function dm_dashboard_viewmodel() {
     add_joined_player,
     remove_joined_player,
     dm_dashboard_shell_model,
+    campaign_list_panel_model,
+    campaign_card_model,
   }
 }
