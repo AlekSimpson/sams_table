@@ -1,9 +1,10 @@
 // VIEWMODEL layer — DM dashboard logic. The only DM-dashboard-related import Views need.
 import { useCallback, useState } from 'react'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
-import { campaign_api, session_api } from '../util/rest_client'
-import { DmDashboardTab } from '../types/app_types'
-import { DNDCampaign } from '../types/dnd_types'
+import { campaign_api, character_api, session_api } from '../util/rest_client'
+import { CampaignDetailTab, DmDashboardTab } from '../types/app_types'
+import { DNDCampaign, DNDCharacter } from '../types/dnd_types'
+import { GameMap } from '../types/game_types'
 
 export function dm_dashboard_viewmodel() {
   const {
@@ -99,6 +100,35 @@ export function dm_dashboard_viewmodel() {
     return { on_card_click }
   }
 
+  function campaign_detail_panel_model(campaign_id: string) {
+    const [current_tab, set_current_tab] = useState<CampaignDetailTab>('characters')
+    const [characters, set_characters] = useState<DNDCharacter[]>([])
+    const [maps, set_maps] = useState<GameMap[]>([])
+
+    const on_characters_tab_press = () => set_current_tab('characters')
+    const on_maps_tab_press = () => set_current_tab('maps')
+
+    const load_characters = useCallback(async () => {
+      const loaded_characters = await character_api.list_characters_in_campaign(campaign_id)
+      set_characters(loaded_characters)
+    }, [campaign_id])
+
+    const load_maps = useCallback(async () => {
+      const loaded_maps = await campaign_api.list_maps(campaign_id)
+      set_maps(loaded_maps)
+    }, [campaign_id])
+
+    return {
+      current_tab,
+      characters,
+      maps,
+      on_characters_tab_press,
+      on_maps_tab_press,
+      load_characters,
+      load_maps,
+    }
+  }
+
   return {
     campaigns,
     selected_campaign,
@@ -115,5 +145,6 @@ export function dm_dashboard_viewmodel() {
     dm_dashboard_shell_model,
     campaign_list_panel_model,
     campaign_card_model,
+    campaign_detail_panel_model,
   }
 }

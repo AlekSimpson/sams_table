@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { DNDCampaign } from '../types/dnd_types'
 import { Button, Card, Input, Panel } from './components'
+import CampaignDetailPanel from './campaign_detail_panel'
 import '../../styles/campaign_list_panel.css'
 
 interface CampaignCardProps {
@@ -37,9 +38,7 @@ export default function CampaignListPanel() {
         <Button variant="ghost" size="small" onClick={model.on_back_press}>
           ← Back to campaigns
         </Button>
-        <div className="scaffold-placeholder campaign-list-panel__detail-placeholder">
-          Campaign detail — coming soon
-        </div>
+        <CampaignDetailPanel campaign={selected_campaign} />
       </div>
     )
   }
