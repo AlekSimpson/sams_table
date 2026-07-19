@@ -224,6 +224,26 @@ describe('place_map_tile', () => {
     expect(did_placement_succeed).toBe(true)
   })
 
+  it('broadcasts map_tile_placed once persistence succeeds, so the notification center (see websockets.ts) picks it up', async () => {
+    mock_map_api.putTiles.mockResolvedValue(undefined)
+    const { result } = render_map_viewmodel()
+
+    await act(async () => {
+      await result.current.place_map_tile('map-1', new_tile_data)
+    })
+
+    const placed_tile_id = map_model.getState().tiles[0].id
+    expect(mock_send).toHaveBeenCalledWith('map_tile_placed', {
+      tile_id: placed_tile_id,
+      asset_id: new_tile_data.asset_id,
+      asset_source: new_tile_data.asset_source,
+      grid_x: new_tile_data.grid_x,
+      grid_y: new_tile_data.grid_y,
+      grid_z: new_tile_data.grid_z,
+      rotation_y: new_tile_data.rotation_y,
+    })
+  })
+
   it('keeps the optimistic tile but sets tiles_error when persisting fails', async () => {
     mock_map_api.putTiles.mockRejectedValue(new Error('save failed'))
     const { result } = render_map_viewmodel()
@@ -237,6 +257,7 @@ describe('place_map_tile', () => {
     expect(result.current.tiles_error).toBe('save failed')
     // A failed persist must not resolve truthy, so callers don't show a confirmation.
     expect(did_placement_succeed).toBe(false)
+    expect(mock_send).not.toHaveBeenCalled()
   })
 })
 

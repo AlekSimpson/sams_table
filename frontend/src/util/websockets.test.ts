@@ -4,6 +4,7 @@ import { map_model } from '../models/map_model'
 import { character_model } from '../models/character_model'
 import { combat_model } from '../models/combat_model'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
+import { notification_model } from '../models/notification_model'
 import { session_model } from '../models/session_model'
 import { WSEnvelope, WSEventType } from '../types/websocket_types'
 import { MapTile } from '../types/game_types'
@@ -61,6 +62,7 @@ describe('dispatch_websocket_event', () => {
       active_map_id: null,
       joined_players: [],
     })
+    notification_model.setState({ notifications: [] })
     session_model.getState().clear_session()
   })
 
@@ -278,6 +280,96 @@ describe('dispatch_websocket_event', () => {
       dispatch_websocket_event(make_envelope('player_left', { campaign_id: 'campaign-1', user_id: 'user-1' }))
 
       expect(dm_dashboard_model.getState()).toBe(dm_dashboard_state_before)
+    })
+  })
+
+  describe('notification side effects', () => {
+    it('hp_update adds a notification with the character name and HP delta when the character is known', () => {
+      character_model.getState().set_character(make_character({ id: 'character-1', name: 'Thorian Ashvale', current_hp: 44, max_hp: 44 }))
+
+      dispatch_websocket_event(make_envelope('hp_update', { character_id: 'character-1', current_hp: 10, max_hp: 44 }))
+
+      expect(notification_model.getState().notifications).toHaveLength(1)
+      expect(notification_model.getState().notifications[0]).toMatchObject({
+        message: 'Thorian Ashvale HP: 44 → 10',
+        variant: 'info',
+      })
+    })
+
+    it('hp_update falls back to a nameless message when the character is not in the store', () => {
+      dispatch_websocket_event(make_envelope('hp_update', { character_id: 'unknown-character', current_hp: 5, max_hp: 20 }))
+
+      expect(notification_model.getState().notifications[0].message).toBe('HP updated: 5/20')
+    })
+
+    it('condition_update adds a notification summarizing the new conditions', () => {
+      character_model.getState().set_character(make_character({ id: 'character-1', conditions: [] }))
+
+      dispatch_websocket_event(make_envelope('condition_update', { character_id: 'character-1', conditions: ['poisoned', 'prone'] }))
+
+      expect(notification_model.getState().notifications[0].message).toBe('Conditions updated: poisoned, prone')
+    })
+
+    it('dice_roll_result adds a notification describing the roll', () => {
+      dispatch_websocket_event(
+        make_envelope('dice_roll_result', { roller_id: 'character-1', roller_name: 'Thorian Ashvale', dice: '1d20', results: [15], total: 15 })
+      )
+
+      expect(notification_model.getState().notifications[0].message).toBe('Thorian Ashvale rolled 1d20: 15')
+    })
+
+    it('player_joined adds a notification regardless of role', () => {
+      session_model.setState({ role: 'player' })
+
+      dispatch_websocket_event(
+        make_envelope('player_joined', { campaign_id: 'campaign-1', user_id: 'user-1', character_name: 'Thorian Ashvale' })
+      )
+
+      expect(notification_model.getState().notifications[0].message).toBe('Thorian Ashvale joined the session')
+    })
+
+    it('player_left adds a fallback notification (the payload has no character name)', () => {
+      dispatch_websocket_event(make_envelope('player_left', { campaign_id: 'campaign-1', user_id: 'user-1' }))
+
+      expect(notification_model.getState().notifications[0].message).toBe('A player left the session')
+    })
+
+    it('map_tile_placed adds a "Tile placed" notification when the tile is applied', () => {
+      map_model.getState().set_active_map('map-1', [])
+      map_model.getState().set_tiles_loading(false)
+
+      dispatch_websocket_event(
+        make_envelope('map_tile_placed', {
+          tile_id: 'tile-1',
+          asset_id: 'default_floor_stone',
+          asset_source: 'default',
+          grid_x: 0,
+          grid_y: 0,
+          grid_z: 0,
+          rotation_y: 0,
+        })
+      )
+
+      expect(notification_model.getState().notifications[0]).toMatchObject({ message: 'Tile placed', variant: 'success' })
+    })
+
+    it('map_tile_placed does not add a notification while tiles_loading is true', () => {
+      map_model.getState().set_active_map('map-1', [])
+      map_model.getState().set_tiles_loading(true)
+
+      dispatch_websocket_event(
+        make_envelope('map_tile_placed', {
+          tile_id: 'tile-1',
+          asset_id: 'default_floor_stone',
+          asset_source: 'default',
+          grid_x: 0,
+          grid_y: 0,
+          grid_z: 0,
+          rotation_y: 0,
+        })
+      )
+
+      expect(notification_model.getState().notifications).toEqual([])
     })
   })
 })

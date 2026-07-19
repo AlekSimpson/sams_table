@@ -50,3 +50,16 @@ export interface JoinedPlayer {
   user_id: string
   character_name: string
 }
+
+// Shared with views/components/toast.tsx's Toast primitive — defined here (rather than
+// in that view component) so notification_model.ts can reuse it without a model->view
+// import (see notification_model.ts, dispatch_websocket_event in util/websockets.ts).
+export type ToastVariant = 'success' | 'danger' | 'info'
+
+// A single transient notification-center entry (see models/notification_model.ts).
+export interface SessionNotification {
+  id: string
+  message: string
+  variant: ToastVariant
+  created_at: number
+}

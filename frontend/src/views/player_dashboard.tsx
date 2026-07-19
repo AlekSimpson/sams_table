@@ -1,10 +1,11 @@
 // VIEW layer — player dashboard (character sheet + map)
 import { character_viewmodel } from "../viewmodels/character_viewmodel"
 import { session_viewmodel } from "../viewmodels/session_viewmodel"
+import { notification_viewmodel } from "../viewmodels/notification_viewmodel"
 import { useParams } from 'react-router-dom'
 import CharacterSheet from './character_sheet'
 import { PlayerDashboardParameters } from "../types/app_types"
-import { Button, Card, SessionStatusBar, Sidebar, TopBar } from './components'
+import { Button, Card, NotificationCenter, SessionStatusBar, Sidebar, TopBar } from './components'
 import '../../styles/player_dashboard.css'
 
 export default function PlayerDashboard() {
@@ -12,6 +13,7 @@ export default function PlayerDashboard() {
   if (!character_id) return null
   const { characters, player_dashboard_model } = character_viewmodel()
   const { join_code_model, active_map_id } = session_viewmodel()
+  const { notifications, remove_notification } = notification_viewmodel()
   const character = characters[character_id]
   if (!character) return <div>Character not found</div>
   const model = player_dashboard_model()
@@ -24,6 +26,7 @@ export default function PlayerDashboard() {
 
   return (
     <div className="player-dashboard">
+      <NotificationCenter notifications={notifications} on_dismiss={remove_notification} />
       <TopBar
         title={character.name || 'Character'}
         right={

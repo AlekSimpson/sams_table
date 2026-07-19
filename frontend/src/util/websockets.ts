@@ -9,6 +9,7 @@ import { map_model } from '../models/map_model'
 import { character_model } from '../models/character_model'
 import { combat_model } from '../models/combat_model'
 import { dm_dashboard_model } from '../models/dm_dashboard_model'
+import { notification_model } from '../models/notification_model'
 import { WSEnvelope, WSEventType } from '../types/websocket_types'
 import { MOCK_MODE_ENABLED } from './mock/mock_config'
 import { MockWebSocket } from './mock/mock_websocket'
@@ -32,12 +33,20 @@ export function dispatch_websocket_event(envelope: WSEnvelope) {
   const character_state = character_model.getState()
   const combat_state = combat_model.getState()
   const dm_dashboard_state = dm_dashboard_model.getState()
+  const notification_state = notification_model.getState()
   const is_dm = session_model.getState().role === 'dm'
 
   switch (envelope.type as WSEventType) {
     case 'hp_update': {
       const p = envelope.payload as HPUpdatePayload
+      // Captured before update_hp mutates the store, so this still reflects the
+      // pre-update character (name + previous HP) for the notification message below.
+      const character_before_update = character_state.characters[p.character_id]
       character_state.update_hp(p.character_id, p.current_hp, p.max_hp)
+      const hp_change_message = character_before_update
+        ? `${character_before_update.name} HP: ${character_before_update.current_hp} → ${p.current_hp}`
+        : `HP updated: ${p.current_hp}/${p.max_hp}`
+      notification_state.add_notification(hp_change_message, 'info')
       break
     }
     case 'map_activated': {
@@ -77,6 +86,7 @@ export function dispatch_websocket_event(envelope: WSEnvelope) {
         grid_z: p.grid_z,
         rotation_y: p.rotation_y,
       })
+      notification_state.add_notification('Tile placed', 'success')
       break
     }
     case 'map_tile_removed': {
@@ -98,6 +108,8 @@ export function dispatch_websocket_event(envelope: WSEnvelope) {
     case 'condition_update': {
       const p = envelope.payload as ConditionUpdatePayload
       character_state.update_conditions(p.character_id, p.conditions)
+      const condition_summary = p.conditions.length > 0 ? p.conditions.join(', ') : 'none'
+      notification_state.add_notification(`Conditions updated: ${condition_summary}`, 'info')
       break
     }
     case 'initiative_update': {
@@ -109,6 +121,7 @@ export function dispatch_websocket_event(envelope: WSEnvelope) {
       const p = envelope.payload as DiceRollResultPayload
       combat_state.set_last_dice_roll_result(p)
       combat_state.add_dice_roll_result(p)
+      notification_state.add_notification(`${p.roller_name} rolled ${p.dice}: ${p.total}`, 'info')
       break
     }
     case 'visibility_toggle':
@@ -116,14 +129,18 @@ export function dispatch_websocket_event(envelope: WSEnvelope) {
       console.log('ws event (unhandled):', envelope.type, envelope.payload)
       break
     case 'player_joined': {
+      const p = envelope.payload as PlayerJoinedPayload
+      notification_state.add_notification(`${p.character_name} joined the session`, 'success')
       // Presence list is DM-only UI (see dm_dashboard_model.joined_players); skip on
       // player clients so this doesn't mutate a store nothing renders for them.
       if (!is_dm) break
-      const p = envelope.payload as PlayerJoinedPayload
       dm_dashboard_state.add_joined_player({ user_id: p.user_id, character_name: p.character_name })
       break
     }
     case 'player_left': {
+      // PlayerLeftPayload only carries user_id (no character name), so the notification
+      // falls back to a generic message rather than a per-player-name one.
+      notification_state.add_notification('A player left the session', 'info')
       if (!is_dm) break
       const p = envelope.payload as PlayerLeftPayload
       dm_dashboard_state.remove_joined_player(p.user_id)
