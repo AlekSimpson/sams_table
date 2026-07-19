@@ -62,10 +62,10 @@ describe('Sidebar', () => {
     expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
   })
 
-  describe('controlled mode (collapsed / on_toggle_collapsed)', () => {
+  describe('controlled mode (collapsed)', () => {
     it('reflects the collapsed prop and renders no internal toggle button', () => {
       const { container } = render(
-        <Sidebar collapsed on_toggle_collapsed={() => {}}>Campaign list</Sidebar>
+        <Sidebar collapsed>Campaign list</Sidebar>
       )
 
       expect(container.firstChild).toHaveClass('sidebar--collapsed')
@@ -74,7 +74,7 @@ describe('Sidebar', () => {
 
     it('reflects an expanded collapsed prop and still renders no internal toggle button', () => {
       const { container } = render(
-        <Sidebar collapsed={false} on_toggle_collapsed={() => {}}>Campaign list</Sidebar>
+        <Sidebar collapsed={false}>Campaign list</Sidebar>
       )
 
       expect(container.firstChild).not.toHaveClass('sidebar--collapsed')
@@ -83,14 +83,14 @@ describe('Sidebar', () => {
 
     it('does not render an internal toggle button even when collapsible is also passed', () => {
       render(
-        <Sidebar collapsible collapsed on_toggle_collapsed={() => {}}>Campaign list</Sidebar>
+        <Sidebar collapsible collapsed>Campaign list</Sidebar>
       )
 
       expect(screen.queryByRole('button')).not.toBeInTheDocument()
     })
 
     it('does not read from or write to localStorage while controlled', () => {
-      render(<Sidebar collapsed on_toggle_collapsed={() => {}}>Campaign list</Sidebar>)
+      render(<Sidebar collapsed>Campaign list</Sidebar>)
 
       expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBeNull()
     })

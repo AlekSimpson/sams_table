@@ -143,7 +143,7 @@ export default function DMDashboard() {
         </div>
       ) : (
         <div className="dm-dashboard__body">
-          <Sidebar collapsed={is_focus_mode} on_toggle_collapsed={on_focus_mode_toggle_press}>
+          <Sidebar collapsed={is_focus_mode}>
             <div className="dm-dashboard__sidebar-header">
               <span className="section-label">Campaigns</span>
               <Button
@@ -176,7 +176,6 @@ export default function DMDashboard() {
           <Card
             maximizable
             is_maximized={is_focus_mode}
-            on_toggle_maximized={on_focus_mode_toggle_press}
             className="dm-dashboard__panel"
           >
             <div className="pane-toolbar">

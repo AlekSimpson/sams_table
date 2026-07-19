@@ -5,11 +5,10 @@ import './card.css'
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
   maximizable?: boolean
-  // Controlled-mode pair — when `is_maximized` is provided, the card's maximized state is
+  // Controlled mode — when `is_maximized` is provided, the card's maximized state is
   // driven entirely by the caller and no internal toggle button is rendered. When omitted,
   // the card falls back to its standalone behavior (internal state + own toggle button).
   is_maximized?: boolean
-  on_toggle_maximized?: () => void
 }
 
 export default function Card({
@@ -17,7 +16,6 @@ export default function Card({
   children,
   maximizable = false,
   is_maximized,
-  on_toggle_maximized,
   ...rest
 }: CardProps) {
   const is_controlled = is_maximized !== undefined

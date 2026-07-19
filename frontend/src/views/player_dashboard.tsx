@@ -125,7 +125,7 @@ export default function PlayerDashboard() {
       />
 
       <div className="player-dashboard__body">
-        <Sidebar collapsed={is_focus_mode} on_toggle_collapsed={on_focus_mode_toggle_press}>
+        <Sidebar collapsed={is_focus_mode}>
           <div className="player-dashboard__sidebar-header">
             <span className="section-label">Characters</span>
             <Button variant="ghost" size="small" onClick={on_new_character_press} aria-label="New Character">
@@ -147,7 +147,6 @@ export default function PlayerDashboard() {
         <Card
           maximizable
           is_maximized={is_focus_mode}
-          on_toggle_maximized={on_focus_mode_toggle_press}
           className="player-dashboard__panel"
         >
           <div className="pane-toolbar">

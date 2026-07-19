@@ -9,11 +9,10 @@ export const SIDEBAR_COLLAPSED_STORAGE_KEY = 'sams-table-sidebar-collapsed'
 interface SidebarProps extends HTMLAttributes<HTMLElement> {
   side?: SidebarSide
   collapsible?: boolean
-  // Controlled-mode pair — when `collapsed` is provided, the sidebar's collapsed state is
+  // Controlled mode — when `collapsed` is provided, the sidebar's collapsed state is
   // driven entirely by the caller and no internal toggle button is rendered. When omitted,
   // the sidebar falls back to its standalone behavior (internal state + own toggle button).
   collapsed?: boolean
-  on_toggle_collapsed?: () => void
   children: ReactNode
 }
 
@@ -21,7 +20,6 @@ export default function Sidebar({
   side = 'left',
   collapsible = false,
   collapsed,
-  on_toggle_collapsed,
   className,
   children,
   ...rest
