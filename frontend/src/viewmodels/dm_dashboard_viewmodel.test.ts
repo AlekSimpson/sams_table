@@ -422,6 +422,47 @@ describe('campaign_detail_panel_model', () => {
     })
   })
 
+  describe('character selection', () => {
+    it('selects a character via on_character_select', () => {
+      const { result } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_character_select('character-1')
+      })
+
+      expect(result.current.selected_character_id).toBe('character-1')
+    })
+
+    it('clears the selection via on_back_to_characters_press', () => {
+      const { result } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_character_select('character-1')
+      })
+      act(() => {
+        result.current.on_back_to_characters_press()
+      })
+
+      expect(result.current.selected_character_id).toBeNull()
+    })
+
+    it('clears any existing selection whenever load_characters is called', async () => {
+      mock_character_api.list_characters_in_campaign.mockResolvedValue([])
+      const { result } = render_campaign_detail_panel('campaign-1')
+
+      act(() => {
+        result.current.on_character_select('character-1')
+      })
+      expect(result.current.selected_character_id).toBe('character-1')
+
+      await act(async () => {
+        await result.current.load_characters()
+      })
+
+      expect(result.current.selected_character_id).toBeNull()
+    })
+  })
+
   describe('load_maps', () => {
     it('populates maps from the API on success', async () => {
       const maps = [make_map({ id: 'map-1' })]

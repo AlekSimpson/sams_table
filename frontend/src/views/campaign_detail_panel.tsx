@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { DNDCampaign } from '../types/dnd_types'
 import { Button, Card, Input, Panel } from './components'
+import CharacterSheet from './character_sheet'
 import '../../styles/campaign_detail_panel.css'
 
 interface CampaignDetailPanelProps {
@@ -46,20 +47,42 @@ export default function CampaignDetailPanel({ campaign }: CampaignDetailPanelPro
       </nav>
 
       {model.current_tab === 'characters' && (
-        <div className="campaign-detail-panel__list">
-          {model.characters.length === 0 ? (
-            <div className="campaign-detail-panel__empty">No characters in this campaign yet.</div>
-          ) : (
-            model.characters.map((character) => (
-              <Card key={character.id} className="campaign-detail-panel__character-row">
-                <span className="campaign-detail-panel__character-name">{character.name}</span>
-                <span className="campaign-detail-panel__character-meta">
-                  Level {character.level} {character.race} {character.class}
-                </span>
-              </Card>
-            ))
-          )}
-        </div>
+        model.selected_character_id ? (
+          <div className="campaign-detail-panel__character-sheet-frame">
+            <Button
+              variant="ghost"
+              size="small"
+              onClick={model.on_back_to_characters_press}
+              className="campaign-detail-panel__back-button"
+            >
+              ← Back to characters
+            </Button>
+            <div className="campaign-detail-panel__character-sheet-body">
+              <CharacterSheet character_id={model.selected_character_id} />
+            </div>
+          </div>
+        ) : (
+          <div className="campaign-detail-panel__list">
+            {model.characters.length === 0 ? (
+              <div className="campaign-detail-panel__empty">No characters in this campaign yet.</div>
+            ) : (
+              model.characters.map((character) => (
+                <Card
+                  key={character.id}
+                  className="campaign-detail-panel__character-row campaign-detail-panel__character-row--clickable"
+                  onClick={() => model.on_character_select(character.id)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="campaign-detail-panel__character-name">{character.name}</span>
+                  <span className="campaign-detail-panel__character-meta">
+                    Level {character.level} {character.race} {character.class}
+                  </span>
+                </Card>
+              ))
+            )}
+          </div>
+        )
       )}
 
       {model.current_tab === 'maps' && (

@@ -96,13 +96,20 @@ export function dm_dashboard_viewmodel() {
     const [new_map_grid_height_draft, set_new_map_grid_height_draft] = useState('30')
     const [new_map_validation_error, set_new_map_validation_error] = useState<string | null>(null)
     const [is_creating_map, set_is_creating_map] = useState(false)
+    const [selected_character_id, set_selected_character_id] = useState<string | null>(null)
 
     const on_characters_tab_press = () => set_current_tab('characters')
     const on_maps_tab_press = () => set_current_tab('maps')
+    const on_character_select = (character_id: string) => set_selected_character_id(character_id)
+    const on_back_to_characters_press = () => set_selected_character_id(null)
 
+    // Reloading the character list (e.g. on mount, or when the DM switches to a
+    // different campaign) always clears any drilled-into character selection, so a
+    // stale selected_character_id from a previous campaign can never leak through.
     const load_characters = useCallback(async () => {
       const loaded_characters = await character_api.list_characters_in_campaign(campaign_id)
       set_characters(loaded_characters)
+      set_selected_character_id(null)
     }, [campaign_id])
 
     const load_maps = useCallback(async () => {
@@ -153,8 +160,11 @@ export function dm_dashboard_viewmodel() {
       current_tab,
       characters,
       maps,
+      selected_character_id,
       on_characters_tab_press,
       on_maps_tab_press,
+      on_character_select,
+      on_back_to_characters_press,
       load_characters,
       load_maps,
       new_map_name,

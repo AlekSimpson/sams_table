@@ -99,3 +99,41 @@ test('DM can run a full session: campaign, map, session, tile, combat controls',
 
   expect(page_errors).toEqual([])
 })
+
+test('DM can open a character\'s live sheet from the Characters tab and return to the list', async ({ page }) => {
+  const page_errors: Error[] = []
+  page.on('pageerror', (error) => page_errors.push(error))
+
+  // --- Login as the seeded dm_demo user, who already owns the seeded demo campaign
+  // ("The Sunken Spire") complete with pre-seeded characters ---
+  await page.goto('/login')
+  await page.getByLabel('Username').fill('dm_demo')
+  await page.getByLabel('Password').fill('any-password')
+  await page.getByLabel('Signing in as a player').uncheck()
+  await page.getByRole('button', { name: 'Sign In' }).click()
+
+  await expect(page).toHaveURL('/dm')
+
+  const campaign_sidebar_item = page.locator('.sidebar').getByText('The Sunken Spire', { exact: true })
+  await campaign_sidebar_item.click()
+
+  const campaign_detail_panel = page.locator('.campaign-detail-panel')
+  await expect(campaign_detail_panel.getByText('The Sunken Spire', { exact: true })).toBeVisible()
+
+  // Characters tab is the default — select a seeded character and confirm the real,
+  // live CharacterSheet component renders in place of the row list.
+  await expect(campaign_detail_panel.getByText('Thorian Ashvale', { exact: true })).toBeVisible()
+  await campaign_detail_panel.getByText('Thorian Ashvale', { exact: true }).click()
+
+  const character_sheet_frame = campaign_detail_panel.locator('.campaign-detail-panel__character-sheet-frame')
+  await expect(character_sheet_frame.locator('.cs__char-name')).toHaveValue('Thorian Ashvale')
+  await expect(character_sheet_frame.locator('.cs__hp-max')).toHaveValue('44')
+  await expect(character_sheet_frame.locator('.cs__ability-score[title="Strength"]')).toHaveValue('16')
+
+  // --- Navigate back to the character list via the "Back to characters" affordance ---
+  await character_sheet_frame.getByRole('button', { name: /Back to characters/ }).click()
+  await expect(campaign_detail_panel.locator('.campaign-detail-panel__list')).toBeVisible()
+  await expect(campaign_detail_panel.getByText('Thorian Ashvale', { exact: true })).toBeVisible()
+
+  expect(page_errors).toEqual([])
+})
