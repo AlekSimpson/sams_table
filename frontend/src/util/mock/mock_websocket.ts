@@ -2,9 +2,9 @@
 // `new WebSocket(...)` inside websocket_hook() (see ../websockets.ts) when the mock
 // backend is enabled. Implements the interface surface websockets.ts actually uses:
 // onopen/onclose/onerror/onmessage/send/close/readyState.
-import { DiceRollRequestPayload, DiceRollResultPayload, PlayerJoinedPayload, WSEnvelope, WSEventType } from '../../types/websocket_types'
+import { DiceRollRequestPayload, DiceRollResultPayload, WSEnvelope, WSEventType } from '../../types/websocket_types'
 import { simulate_network_latency } from './mock_config'
-import { DEMO_CAMPAIGN_ID, DEMO_PLAYER_CHARACTER_NAME, DEMO_PLAYER_USER_ID } from './fixtures'
+import { DEMO_CAMPAIGN_ID } from './fixtures'
 
 const READY_STATE_CONNECTING = 0
 const READY_STATE_OPEN = 1
@@ -45,38 +45,13 @@ async function broadcast_envelope(envelope: WSEnvelope): Promise<void> {
   }
 }
 
-const DEMO_PLAYER_JOIN_DELAY_MILLISECONDS = 2500
-
-// There's no player-side "join via code" UI yet (see ST-34), so nothing real ever
-// sends a `player_joined` event. To demonstrate the DM's presence list (ST-48)
-// without inventing unrelated player-side UI, the mock hub simulates one demo player
-// joining shortly after the first mock socket connects in this tab. In the current
-// app, that first connection only happens once the DM starts a session (DmMapPanel /
-// DmCombatControlsPanel — the only callers of websocket_hook() on the DM side — mount
-// only in-session), so this reliably fires once per session start. Guarded to run
-// once per page load so it isn't re-broadcast by the second (map + combat) socket
-// that also opens when a session starts.
-let demo_player_join_already_simulated = false
-
-function schedule_demo_player_joined_broadcast(): void {
-  if (demo_player_join_already_simulated) return
-  demo_player_join_already_simulated = true
-
-  setTimeout(() => {
-    const payload: PlayerJoinedPayload = {
-      campaign_id: DEMO_CAMPAIGN_ID,
-      user_id: DEMO_PLAYER_USER_ID,
-      character_name: DEMO_PLAYER_CHARACTER_NAME,
-    }
-    void broadcast_envelope({
-      type: 'player_joined',
-      campaign_id: DEMO_CAMPAIGN_ID,
-      sender_id: DEMO_PLAYER_USER_ID,
-      payload,
-      ts: Date.now(),
-    })
-  }, DEMO_PLAYER_JOIN_DELAY_MILLISECONDS)
-}
+// ST-48 originally had the mock hub simulate a demo player joining shortly after the
+// first mock socket connected in a tab, since no real player-side "join via code" UI
+// existed yet to produce a genuine `player_joined` event. ST-34 adds that real join
+// flow (see session_viewmodel.ts's join_code_model, which sends a real `player_joined`
+// event — with the actual joining character's info — once session_api.join succeeds),
+// so the demo simulation is removed rather than left to fire alongside real joins,
+// which would otherwise inject a phantom player into the DM's presence list.
 
 export class MockWebSocket {
   static readonly CONNECTING = READY_STATE_CONNECTING
@@ -99,7 +74,6 @@ export class MockWebSocket {
       if (this.readyState === READY_STATE_CLOSED) return
       this.readyState = READY_STATE_OPEN
       this.onopen?.()
-      schedule_demo_player_joined_broadcast()
     })
   }
 

@@ -24,6 +24,23 @@
   min-height: 36px;
 }
 
+.player-dashboard__join-code {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.player-dashboard__join-error {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
 .player-dashboard__panel {
   min-width: 0;
 }

@@ -71,10 +71,6 @@ const DEMO_CHARACTERS: DNDCharacter[] = [
   },
 ]
 
-// Character controlled by DEMO_PLAYER_USER_ID — used by mock_websocket.ts to simulate
-// that player joining the DM's live session (see schedule_demo_player_joined_broadcast).
-export const DEMO_PLAYER_CHARACTER_NAME = DEMO_CHARACTERS[0].name
-
 const DEMO_MAP: GameMap = {
   id: DEMO_MAP_ID,
   campaign_id: DEMO_CAMPAIGN_ID,
