@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { asset_api } from '../util/rest_client'
+import { asset_api, campaign_api } from '../util/rest_client'
 import { UploadedAsset } from '../types/game_types'
 
 export function asset_viewmodel() {
@@ -42,11 +42,19 @@ export function asset_viewmodel() {
 
   const getAssetUrl = useCallback((assetID: string) => asset_api.getUrl(assetID), [])
 
+  /** Load all uploaded assets for a campaign (asset catalogue browsing). */
+  const list_campaign_assets = useCallback(async (campaign_id: string) => {
+    const assets = await campaign_api.list_assets(campaign_id)
+    set_uploaded_assets(assets)
+  }, [])
+
   /** DM: upload form state for adding a custom STL tile/mini — file, label, asset_type,
    *  and placement dimensions, with client-side validation before handing off to
    *  uploadSTL. file_input_reset_key is bumped after a successful upload to force the
-   *  (uncontrollable) native file input to remount and clear its selected file. */
-  function asset_upload_form_model(campaign_id: string) {
+   *  (uncontrollable) native file input to remount and clear its selected file.
+   *  on_upload_success, if provided, fires after a successful upload (e.g. so a
+   *  parent catalogue view can refresh its asset list). */
+  function asset_upload_form_model(campaign_id: string, on_upload_success?: () => void) {
     const [selected_file, set_selected_file] = useState<File | null>(null)
     const [label_draft, set_label_draft] = useState('')
     const [asset_type_draft, set_asset_type_draft] = useState<'map_tile' | 'mini'>('map_tile')
@@ -128,6 +136,7 @@ export function asset_viewmodel() {
         set_grid_depth_draft('1')
         set_scale_factor_draft('1')
         set_file_input_reset_key((previous_key) => previous_key + 1)
+        on_upload_success?.()
       } catch {
         // upload_error is already set by uploadSTL — nothing further to do here.
       }
@@ -160,6 +169,7 @@ export function asset_viewmodel() {
     upload_error,
     uploadSTL,
     getAssetUrl,
+    list_campaign_assets,
     asset_upload_form_model,
   }
 }

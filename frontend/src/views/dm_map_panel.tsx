@@ -63,7 +63,7 @@ export default function DmMapPanel({ campaign_id }: DmMapPanelProps) {
         {active_map_id ? (
           <>
             <MapScene mode="build" map_id={active_map_id} />
-            <AssetCatalogPanel />
+            <AssetCatalogPanel campaign_id={campaign_id} />
           </>
         ) : (
           <div className="scaffold-placeholder">Select a map to begin</div>
