@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { map_viewmodel } from '../viewmodels/map_viewmodel'
-import MapScene from './todo_views/map_view/map_view'
-import AssetCatalogPanel from './todo_views/map_view/asset_catalogue_panel'
+import DmMapEditor from './dm_map_editor'
 import { Button, Panel } from './components'
 import '../../styles/dm_map_panel.css'
 
@@ -61,10 +60,7 @@ export default function DmMapPanel({ campaign_id }: DmMapPanelProps) {
 
       <div className="dm-map-panel__canvas">
         {active_map_id ? (
-          <>
-            <MapScene mode="build" map_id={active_map_id} />
-            <AssetCatalogPanel campaign_id={campaign_id} />
-          </>
+          <DmMapEditor map_id={active_map_id} campaign_id={campaign_id} />
         ) : (
           <div className="scaffold-placeholder">Select a map to begin</div>
         )}

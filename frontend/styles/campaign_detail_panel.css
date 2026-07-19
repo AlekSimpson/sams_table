@@ -103,6 +103,30 @@
   color: var(--color-text-secondary);
 }
 
+.campaign-detail-panel__map-row--clickable {
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.campaign-detail-panel__map-row--clickable:hover {
+  background: var(--color-surface-hover);
+}
+
+.campaign-detail-panel__map-editor-frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: var(--space-3);
+}
+
+.campaign-detail-panel__map-editor-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
 .campaign-detail-panel__map-form {
   display: flex;
   flex-direction: column;
