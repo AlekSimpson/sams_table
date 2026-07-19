@@ -5,7 +5,7 @@ import { map_api, permission_api } from '../util/rest_client'
 import { websocket_hook } from '../util/websockets'
 import { MapTile } from '../types/game_types'
 import { CampaignPermissionEntry } from '../types/dnd_types'
-import { MapActivatedPayload, TokenMovedPayload } from '../types/websocket_types'
+import { MapActivatedPayload, MapTilePlacedPayload, TokenMovedPayload } from '../types/websocket_types'
 
 export function map_viewmodel() {
   const { tiles, tokens, mode, selected_asset, active_map_id, tiles_loading, set_mode, set_selected_asset, place_tile, remove_tile, move_token: move_token_in_store, set_active_map, set_tokens, set_tiles_loading } = map_model()
@@ -23,9 +23,12 @@ export function map_viewmodel() {
     [send]
   )
 
-  /** DM: place a tile in the builder and persist the full tile list via REST.
-   *  Resolves true once persistence actually succeeds (false on failure), so callers
-   *  can surface a confirmation only for a real, persisted placement. */
+  /** DM: place a tile in the builder and persist the full tile list via REST, then
+   *  broadcast map_tile_placed so other connected clients — and this one, once the
+   *  broadcast round-trips back — pick up the placement (see dispatch_websocket_event's
+   *  map_tile_placed case in websockets.ts, which is also what surfaces the "Tile
+   *  placed" notification-center toast). Resolves true once persistence actually
+   *  succeeds (false on failure), so callers know a placement really went through. */
   const place_map_tile = useCallback(
     async (map_ID: string, tile: Omit<MapTile, 'id' | 'map_id'>) => {
       const placed_tile: MapTile = { ...tile, id: crypto.randomUUID(), map_id: map_ID }
@@ -33,13 +36,22 @@ export function map_viewmodel() {
       set_tiles_error(null)
       try {
         await map_api.putTiles(map_ID, map_model.getState().tiles)
+        send<MapTilePlacedPayload>('map_tile_placed', {
+          tile_id: placed_tile.id,
+          asset_id: placed_tile.asset_id,
+          asset_source: placed_tile.asset_source,
+          grid_x: placed_tile.grid_x,
+          grid_y: placed_tile.grid_y,
+          grid_z: placed_tile.grid_z,
+          rotation_y: placed_tile.rotation_y,
+        })
         return true
       } catch (err) {
         set_tiles_error(err instanceof Error ? err.message : 'Failed to save map tiles')
         return false
       }
     },
-    [place_tile]
+    [place_tile, send]
   )
 
   /** DM: remove a tile in the builder and persist the full tile list via REST. */

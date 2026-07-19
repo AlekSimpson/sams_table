@@ -1,6 +1,7 @@
 // VIEW layer — DM dashboard shell (pre-session sidebar nav vs. in-session map + control sidebar)
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
-import { Badge, Button, Card, Panel, SessionStatusBar, Sidebar, TopBar } from './components'
+import { notification_viewmodel } from '../viewmodels/notification_viewmodel'
+import { Badge, Button, Card, NotificationCenter, Panel, SessionStatusBar, Sidebar, TopBar } from './components'
 import CampaignListPanel from './campaign_list_panel'
 import DmCombatControlsPanel from './dm_combat_controls_panel'
 import DmMapPanel from './dm_map_panel'
@@ -10,12 +11,14 @@ import '../../styles/dm_dashboard.css'
 export default function DMDashboard() {
   const { session, selected_campaign, joined_players, end_session, dm_dashboard_shell_model, session_controls_model } =
     dm_dashboard_viewmodel()
+  const { notifications, remove_notification } = notification_viewmodel()
   const model = dm_dashboard_shell_model()
   const session_controls = session_controls_model(session?.join_code ?? '')
   const is_in_session = session !== null
 
   return (
     <div className="dm-dashboard">
+      <NotificationCenter notifications={notifications} on_dismiss={remove_notification} />
       <TopBar
         title={selected_campaign?.name ?? 'DM Dashboard'}
         right={
