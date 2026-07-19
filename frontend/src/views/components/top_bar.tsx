@@ -2,7 +2,7 @@
 import { HTMLAttributes, ReactNode } from 'react'
 import './top_bar.css'
 
-interface TopBarProps extends HTMLAttributes<HTMLElement> {
+interface TopBarProps extends Omit<HTMLAttributes<HTMLElement>, 'title'> {
   title?: ReactNode
   left?: ReactNode
   right?: ReactNode

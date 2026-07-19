@@ -1,7 +1,8 @@
 // VIEW layer — full character sheet display
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
 import { CharacterSheetProps } from '../types/app_types'
-import '../../styles/CharacterSheet.css'
+import { Avatar, Badge, Button, Card, Panel, Sidebar } from './components'
+import '../../styles/character_sheet.css'
 
 function CombatTab() {
   return (
@@ -21,13 +22,13 @@ function CombatTab() {
 
       <div className="cs__section">
         <div className="cs__section-label">Effects</div>
-        <div className="cs__effect-card">
+        <Card className="cs__effect-card">
           <div>
             <div className="cs__effect-title">Global Attack Modifier</div>
             <div className="cs__effect-sub">No active effect</div>
           </div>
-          <button className="btn btn--secondary" style={{ fontSize: 11, padding: '5px 12px' }}>Modify</button>
-        </div>
+          <Button variant="secondary" size="small">Modify</Button>
+        </Card>
       </div>
 
       <div className="cs__section">
@@ -66,8 +67,7 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
   const model = character_sheet_model(character)
 
   const hp_pct = model.health_percentage
-  const hp_color = hp_pct > 50 ? 'var(--green)' : hp_pct > 25 ? 'var(--gold)' : 'var(--red)'
-  const hp_bar_color = hp_pct > 50 ? '#3a7a3a' : hp_pct > 25 ? 'var(--gold)' : 'var(--red)'
+  const hp_color = hp_pct > 50 ? 'var(--color-success)' : hp_pct > 25 ? 'var(--color-warning)' : 'var(--color-danger)'
 
   const on_hp_dec = () =>
     model.on_current_hp_change({ target: { value: String(Math.max(0, character.current_hp - 1)) } } as unknown as React.ChangeEvent<HTMLInputElement>)
@@ -76,18 +76,18 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
 
   const ability_mod_color = (score: number) => {
     const modifier = model.ability_modifier(score)
-    return modifier > 0 ? 'var(--red)' : modifier < 0 ? '#b05050' : 'var(--ink2)'
+    return modifier > 0 ? 'var(--color-accent)' : modifier < 0 ? 'var(--color-danger)' : 'var(--color-text-secondary)'
   }
 
   const save_color = (score: number) => {
     const modifier = model.ability_modifier(score)
-    return modifier > 0 ? 'var(--green)' : modifier < 0 ? 'var(--red)' : 'var(--ink2)'
+    return modifier > 0 ? 'var(--color-success)' : modifier < 0 ? 'var(--color-danger)' : 'var(--color-text-secondary)'
   }
 
   const skill_mod_color = (proficient: boolean, score: number) => {
-    if (proficient) return 'var(--red)'
+    if (proficient) return 'var(--color-accent)'
     const modifier = model.ability_modifier(score)
-    return modifier > 0 ? '#2a5a2a' : 'var(--ink4)'
+    return modifier > 0 ? 'var(--color-success)' : 'var(--color-text-quaternary)'
   }
 
   return (
@@ -98,10 +98,10 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
 
         {/* Identity strip */}
         <div className="cs__identity">
-          <div className="cs__avatar">
-            {character.name?.[0]?.toUpperCase() ?? '?'}
-            {character.level > 0 && <span className="cs__level-badge">{character.level}</span>}
-          </div>
+          <Avatar
+            label={character.name?.[0]?.toUpperCase() ?? '?'}
+            badge={character.level > 0 ? character.level : undefined}
+          />
 
           <div className="cs__identity-body">
             <input
@@ -150,7 +150,7 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
         <div className="cs__stats-grid">
 
           {/* Abilities (260px) */}
-          <div className="cs__stats-panel">
+          <Panel className="cs__stats-panel">
             <span className="cs__panel-label">Abilities</span>
             <div className="cs__ability-grid">
               {model.ABILITIES.map(({ key, label }) => (
@@ -169,10 +169,10 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </Panel>
 
-          {/* Saving Throws (180px) */}
-          <div className="cs__stats-panel">
+          {/* Saving Throws (200px) */}
+          <Panel className="cs__stats-panel">
             <span className="cs__panel-label">Saving Throws</span>
             {model.ABILITIES.map(({ key }) => (
               <div key={key} className="cs__save-row">
@@ -183,15 +183,14 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
                 </span>
               </div>
             ))}
-          </div>
+          </Panel>
 
           {/* Hit Points (flex: 1) */}
-          <div className="cs__stats-panel">
+          <Panel className="cs__stats-panel">
             <span className="cs__panel-label">Hit Points</span>
             <div className="cs__hp-row">
-              {/*<span className="cs__hp-num" style={{ color: hp_color }}>{character.current_hp}</span>*/}
               <input
-                className="cs__hp-num" 
+                className="cs__hp-num"
                 type="number"
                 value={character.current_hp}
                 onChange={model.on_current_hp_change}
@@ -209,19 +208,19 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
               <span className="cs__hp-max-label">max</span>
             </div>
             <div className="cs__hp-bar">
-              <div className="cs__hp-bar-fill" style={{ width: `${hp_pct}%`, background: hp_bar_color }} />
+              <div className={`cs__hp-bar-fill${model.hp_bar_class}`} style={{ width: `${hp_pct}%` }} />
             </div>
             <div className="cs__hp-controls">
               <button className="cs__hp-btn cs__hp-btn--dec" onClick={on_hp_dec}>−</button>
               <button className="cs__hp-btn cs__hp-btn--inc" onClick={on_hp_inc}>+</button>
-              <button className="cs__rest-btn">☽ Short</button>
-              <button className="cs__rest-btn">✦ Long</button>
+              <Button variant="secondary" size="small" className="cs__rest-btn">☽ Short</Button>
+              <Button variant="secondary" size="small" className="cs__rest-btn">✦ Long</Button>
             </div>
-          </div>
+          </Panel>
         </div>
 
         {/* Vitals bar */}
-        <div className="cs__vitals-bar">
+        <Panel className="cs__vitals-bar">
           <div className="cs__vital">
             <input
               className="cs__vital-val cs__vital-val--plain"
@@ -259,7 +258,7 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
             />
             <span className="cs__vital-lbl">Level</span>
           </div>
-        </div>
+        </Panel>
 
         {/* Tab bar */}
         <div className="cs__tab-bar">
@@ -289,7 +288,7 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
           </div>
 
           {/* Skills panel */}
-          <div className="cs__skills-panel">
+          <Panel className="cs__skills-panel">
             <div className="cs__skills-header">
               <span className="cs__panel-label">Skills</span>
             </div>
@@ -311,14 +310,14 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
                 )
               })}
             </div>
-          </div>
+          </Panel>
         </div>
       </div>
 
       {/* ── Right sidebar ── */}
-      <aside className="cs__aside">
+      <Sidebar side="right" className="cs__aside">
 
-        <div className="cs__aside-section">
+        <Panel className="cs__aside-section">
           <div className="cs__aside-header"><span>Defenses</span><hr /></div>
           <div className="cs__aside-row">
             <span className="cs__aside-key">Resistance</span>
@@ -332,22 +331,22 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
             <span className="cs__aside-key">Vulnerability</span>
             <span className="cs__aside-val cs__aside-val--empty">None</span>
           </div>
-        </div>
+        </Panel>
 
-        <div className="cs__aside-section">
+        <Panel className="cs__aside-section">
           <div className="cs__aside-header"><span>Conditions</span><hr /></div>
           {character.conditions.length === 0 ? (
             <p className="cs__aside-empty">No active conditions</p>
           ) : (
             <div className="cs__conditions-list">
               {character.conditions.map(c => (
-                <span key={c} className="cs__condition-tag">{c}</span>
+                <Badge key={c} variant="danger">{c}</Badge>
               ))}
             </div>
           )}
-        </div>
+        </Panel>
 
-        <div className="cs__aside-section">
+        <Panel className="cs__aside-section">
           <div className="cs__aside-header"><span>Senses</span><hr /></div>
           <div className="cs__sense-row">
             <div>
@@ -374,9 +373,9 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
             <div><div className="cs__sense-label">Darkvision</div></div>
             <span className="cs__sense-val cs__sense-val--empty">—</span>
           </div>
-        </div>
+        </Panel>
 
-        <div className="cs__aside-section">
+        <Panel className="cs__aside-section">
           <div className="cs__aside-header"><span>Proficiencies</span><hr /></div>
           <div className="cs__prof-group">
             <span className="cs__prof-label">Weapons</span>
@@ -394,9 +393,9 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
             <span className="cs__prof-label">Languages</span>
             <textarea className="cs__prof-textarea" placeholder="Not set" rows={1} />
           </div>
-        </div>
+        </Panel>
 
-      </aside>
+      </Sidebar>
     </div>
   )
 }

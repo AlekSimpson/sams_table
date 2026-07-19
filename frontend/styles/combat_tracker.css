@@ -1,0 +1,10 @@
+.combat-tracker {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.combat-tracker__content {
+  padding: var(--space-6);
+}
