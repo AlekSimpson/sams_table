@@ -52,6 +52,9 @@
   /* ── Frosted glass ── */
   --backdrop-blur:          20px;
 
+  /* ── Overlay (modal backdrop scrim) ── */
+  --color-overlay:          rgba(0, 0, 0, 0.32);
+
   /* ── Spacing scale ── */
   --space-1:  4px;
   --space-2:  8px;

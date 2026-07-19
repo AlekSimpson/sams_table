@@ -37,11 +37,11 @@ export default function MapScene({ mode, map_id }: MapSceneProps) {
   }
 
   if (tiles_loading) {
-    return <div style={{ padding: 24, color: '#ccc' }}>Loading map…</div>
+    return <div style={{ padding: 24, color: 'var(--color-text-secondary)' }}>Loading map…</div>
   }
 
   if (tiles_error) {
-    return <div style={{ padding: 24, color: '#e05a5a' }}>Failed to load map: {tiles_error}</div>
+    return <div style={{ padding: 24, color: 'var(--color-danger)' }}>Failed to load map: {tiles_error}</div>
   }
 
   return (
