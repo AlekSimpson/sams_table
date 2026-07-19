@@ -33,22 +33,23 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   expect(join_code).toMatch(/^[A-Z0-9]{6}$/)
   await dm_page.close()
 
-  // --- Login as the seeded player_demo user (role checkbox defaults to player) ---
+  // --- Login as the seeded player_demo user (role checkbox defaults to player).
+  // player_demo already owns one seeded character, so /play immediately redirects
+  // (client-side) straight to that character's dashboard instead of an intermediate
+  // picker page. ---
   await page.goto('/login')
   await page.getByLabel('Username').fill('player_demo')
   await page.getByLabel('Password').fill('any-password')
   await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL('/play')
+  await expect(page).toHaveURL(/\/play\/dashboard\//)
 
-  // --- Create a new character (player_demo already has one seeded character, so wait
-  // for that to load first, giving a deterministic before/after character count) ---
-  await expect(page.locator('.character-card')).toHaveCount(1)
-  await page.getByRole('button', { name: '+ New Character' }).click()
-  await expect(page.locator('.character-card')).toHaveCount(2)
-
-  const new_character_card = page.locator('.character-card').filter({ hasNotText: 'Thorian Ashvale' })
-  await expect(new_character_card).toHaveCount(1)
-  await new_character_card.click()
+  // --- Create a new character via the dashboard sidebar's "+ New Character" affordance
+  // (wait for the seeded character to appear in the sidebar first, giving a deterministic
+  // before/after count). Creating a character immediately opens it, Notes.app-style, so
+  // no separate click-to-open step is needed. ---
+  await expect(page.locator('.character-sidebar-item')).toHaveCount(1)
+  await page.getByRole('button', { name: 'New Character' }).click()
+  await expect(page.locator('.character-sidebar-item')).toHaveCount(2)
   await expect(page).toHaveURL(/\/play\/dashboard\//)
 
   const character_name = await page.locator('.cs__char-name').inputValue()
@@ -81,7 +82,10 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   await expect(page.locator('.player-dashboard__content canvas')).toBeVisible()
   await expect(page.getByText('Live Map — coming soon')).toHaveCount(0)
 
-  await page.getByRole('button', { name: 'Character Sheet', exact: true }).click()
+  // The old standalone "Character Sheet" nav button was replaced by the sidebar's
+  // character list — re-selecting the currently-open character (its row is marked
+  // active) is what switches the detail pane back to the sheet now.
+  await page.locator('.character-sidebar-item--active').click()
   // The character store (character_model.ts) isn't reset on unmount, so the just-edited
   // value is still showing immediately after remount regardless of whether it actually
   // saved - only the refetch inside load_character's mock REST call (150-400ms simulated

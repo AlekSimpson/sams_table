@@ -1,25 +1,90 @@
-// VIEW layer — player dashboard (character sheet + map)
+// VIEW layer — player dashboard (character sheet + map). Sidebar lists every character
+// the signed-in player owns (like switching between notes in Notes.app) — selecting one
+// swaps the route param without unmounting this shell.
+import { useEffect } from 'react'
 import { character_viewmodel } from "../viewmodels/character_viewmodel"
 import { session_viewmodel } from "../viewmodels/session_viewmodel"
 import { notification_viewmodel } from "../viewmodels/notification_viewmodel"
 import { useParams } from 'react-router-dom'
 import CharacterSheet from './character_sheet'
 import MapScene from './todo_views/map_view/map_view'
+import { DNDCharacter } from '../types/dnd_types'
 import { PlayerDashboardParameters } from "../types/app_types"
-import { Button, Card, NotificationCenter, SessionStatusBar, Sidebar, TopBar } from './components'
+import { Avatar, Button, Card, NotificationCenter, SessionStatusBar, Sidebar, TopBar } from './components'
 import '../../styles/player_dashboard.css'
+
+interface CharacterSidebarItemProps {
+  character: DNDCharacter
+  is_selected: boolean
+  on_select: () => void
+}
+
+function CharacterSidebarItem({ character, is_selected, on_select }: CharacterSidebarItemProps) {
+  const { character_card_model } = character_viewmodel()
+  const model = character_card_model(character, is_selected)
+
+  const on_row_click = () => {
+    model.on_card_click()
+    on_select()
+  }
+
+  return (
+    <div
+      className={`character-sidebar-item${is_selected ? ' character-sidebar-item--active' : ''}`}
+      onClick={on_row_click}
+      role="button"
+      tabIndex={0}
+    >
+      <Avatar size="small" label={character.name?.[0]?.toUpperCase() ?? '?'} />
+      <div className="character-sidebar-item__info">
+        <div className="character-sidebar-item__name">
+          {character.name || 'Unnamed Character'}
+        </div>
+        <div className="character-sidebar-item__identity">
+          {model.identity_parts.length > 0 ? model.identity_parts.join(' · ') : 'No class or race set'}
+        </div>
+      </div>
+      <button
+        type="button"
+        className="character-sidebar-item__delete-btn"
+        onClick={model.on_delete_click}
+        aria-label={`Delete ${character.name}`}
+      >
+        ×
+      </button>
+    </div>
+  )
+}
 
 export default function PlayerDashboard() {
   const { character_id } = useParams<PlayerDashboardParameters>()
-  if (!character_id) return null
-  const { characters, player_dashboard_model } = character_viewmodel()
-  const { join_code_model, active_map_id } = session_viewmodel()
+  const { characters, load_user_characters, create_new_character_for_user, player_dashboard_model } = character_viewmodel()
+  const { join_code_model, active_map_id, user } = session_viewmodel()
   const { notifications, remove_notification } = notification_viewmodel()
-  const character = characters[character_id]
-  if (!character) return <div>Character not found</div>
+
+  // Called unconditionally, before any early return, so this component's hook order
+  // never changes across renders — needed for direct URLs (bookmark/refresh) where
+  // `characters` starts out empty and only the effect below populates it.
   const model = player_dashboard_model()
   const join_code = join_code_model()
+
+  useEffect(() => {
+    if (!user) return
+    load_user_characters(user.id)
+  }, [user?.id])
+
+  if (!character_id) return null
+
+  const character = characters[character_id]
+  const character_list = Object.values(characters)
   const is_in_session = active_map_id !== null
+
+  const on_new_character_press = () => {
+    if (!user) return
+    create_new_character_for_user(user.id, `New Character ${character_list.length + 1}`)
+  }
+
+  if (!character) return <div>Character not found</div>
 
   const on_join_code_key_down = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') join_code.on_submit(character.name)
@@ -49,15 +114,21 @@ export default function PlayerDashboard() {
 
       <div className="player-dashboard__body">
         <Sidebar collapsible>
-          <nav className="player-dashboard__nav">
-            <Button
-              variant={model.current_tab === 'sheet' ? 'secondary' : 'ghost'}
-              size="small"
-              full_width
-              onClick={model.on_sheet_tab_press}
-            >
-              Character Sheet
+          <div className="player-dashboard__sidebar-header">
+            <span className="section-label">Characters</span>
+            <Button variant="ghost" size="small" onClick={on_new_character_press} aria-label="New Character">
+              +
             </Button>
+          </div>
+          <nav className="player-dashboard__character-list">
+            {character_list.map((list_character) => (
+              <CharacterSidebarItem
+                key={list_character.id}
+                character={list_character}
+                is_selected={list_character.id === character_id}
+                on_select={model.on_sheet_tab_press}
+              />
+            ))}
           </nav>
         </Sidebar>
 

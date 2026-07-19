@@ -5,19 +5,17 @@
 // session joined, no roll sent, no map created, no unauthorized page reached).
 import { test, expect, Page } from '@playwright/test'
 
-/** Logs in as the seeded player_demo user and opens their existing seeded character's
- *  dashboard (Thorian Ashvale) — reused by the join-code and dice-notation failure tests
- *  below, since both need a mounted PlayerDashboard. */
+/** Logs in as the seeded player_demo user, whose single seeded character (Thorian
+ *  Ashvale) makes /play immediately redirect (client-side) to that character's
+ *  dashboard — reused by the join-code and dice-notation failure tests below, since
+ *  both need a mounted PlayerDashboard. */
 async function login_as_player_and_open_character_dashboard(page: Page) {
   await page.goto('/login')
   await page.getByLabel('Username').fill('player_demo')
   await page.getByLabel('Password').fill('any-password')
   await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL('/play')
-
-  await expect(page.locator('.character-card')).toHaveCount(1)
-  await page.locator('.character-card').first().click()
   await expect(page).toHaveURL(/\/play\/dashboard\//)
+  await expect(page.locator('.character-sidebar-item')).toHaveCount(1)
 }
 
 test('Invalid join code shows an inline error and does not start a session', async ({ page }) => {
@@ -197,9 +195,6 @@ test('DM can revoke a joined player\'s can_move_tokens permission, and it persis
   await player_page.getByLabel('Username').fill('player_demo')
   await player_page.getByLabel('Password').fill('any-password')
   await player_page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(player_page).toHaveURL('/play')
-  await expect(player_page.locator('.character-card')).toHaveCount(1)
-  await player_page.locator('.character-card').first().click()
   await expect(player_page).toHaveURL(/\/play\/dashboard\//)
   await player_page.getByPlaceholder('Join Code').fill(join_code!)
   await player_page.getByRole('button', { name: 'Join' }).click()
