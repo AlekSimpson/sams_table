@@ -15,11 +15,10 @@
   padding: 0;
 }
 
-.card--maximized {
-  position: fixed;
-  inset: var(--space-4);
-  z-index: 500;
-}
+/* `.card--maximized` intentionally carries no styling of its own — growth into the space
+   freed by the sidebar collapsing happens purely through `.card--maximizable`'s `flex: 1`
+   reflowing within the existing flex layout, so no override is needed here. The class is
+   still applied by Card (see card.tsx) as a state hook for callers/tests. */
 
 .card__toolbar {
   display: flex;
