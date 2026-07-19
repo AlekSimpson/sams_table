@@ -1,16 +1,17 @@
-// VIEW layer — DM form to upload a custom STL tile/mini for a campaign (standalone;
-// not yet mounted into a route — a future ticket wires this into the asset catalogue).
+// VIEW layer — DM form to upload a custom STL tile/mini for a campaign.
 import { asset_viewmodel } from '../viewmodels/asset_viewmodel'
 import { Button, Card, Input } from './components'
 import '../../styles/asset_upload_form.css'
 
 interface AssetUploadFormProps {
   campaign_id: string
+  /** Fires after a successful upload — e.g. so a parent asset catalogue can refresh its list. */
+  on_upload_success?: () => void
 }
 
-export default function AssetUploadForm({ campaign_id }: AssetUploadFormProps) {
+export default function AssetUploadForm({ campaign_id, on_upload_success }: AssetUploadFormProps) {
   const asset = asset_viewmodel()
-  const model = asset.asset_upload_form_model(campaign_id)
+  const model = asset.asset_upload_form_model(campaign_id, on_upload_success)
 
   return (
     <Card className="asset-upload-form">
