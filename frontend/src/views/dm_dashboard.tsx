@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { dm_dashboard_viewmodel } from '../viewmodels/dm_dashboard_viewmodel'
 import { notification_viewmodel } from '../viewmodels/notification_viewmodel'
+import { session_viewmodel } from '../viewmodels/session_viewmodel'
 import { DNDCampaign } from '../types/dnd_types'
 import { Badge, Button, Card, Input, Modal, NotificationCenter, Panel, SessionStatusBar, Sidebar, SIDEBAR_COLLAPSED_STORAGE_KEY, TopBar } from './components'
 import CampaignDetailPanel from './campaign_detail_panel'
@@ -48,6 +49,7 @@ export default function DMDashboard() {
     session_controls_model,
   } = dm_dashboard_viewmodel()
   const { notifications, remove_notification } = notification_viewmodel()
+  const { logout } = session_viewmodel()
   const session_controls = session_controls_model(session?.join_code ?? '')
   const new_campaign_form = campaign_sidebar_model()
   const [is_new_campaign_modal_open, set_is_new_campaign_modal_open] = useState(false)
@@ -84,6 +86,7 @@ export default function DMDashboard() {
           <SessionStatusBar
             role="dm"
             is_in_session={is_in_session}
+            on_logout_press={logout}
             dm_props={{
               join_code: session?.join_code ?? '',
               copied: session_controls.copied,

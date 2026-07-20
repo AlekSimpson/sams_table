@@ -15,6 +15,7 @@ interface CombatActions {
   set_initiative_order: (entries: InitiativeEntry[]) => void
   set_last_dice_roll_result: (result: DiceRollResultPayload) => void
   add_dice_roll_result: (result: DiceRollResultPayload) => void
+  reset: () => void
 }
 
 type CombatModel = CombatState & CombatActions
@@ -30,4 +31,10 @@ export const combat_model = create<CombatModel>()((set) => ({
     set((state) => ({
       dice_roll_history: [...state.dice_roll_history, result].slice(-DICE_ROLL_HISTORY_LIMIT),
     })),
+
+  reset: () => set({
+    initiative_order: [],
+    last_dice_roll_result: null,
+    dice_roll_history: [],
+  }),
 }))

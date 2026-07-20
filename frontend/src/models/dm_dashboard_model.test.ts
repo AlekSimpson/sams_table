@@ -168,4 +168,18 @@ describe('dm_dashboard_model', () => {
       expect(dm_dashboard_model.getState().joined_players).toEqual([])
     })
   })
+
+  describe('reset', () => {
+    it('restores every field to its initial default', () => {
+      dm_dashboard_model.getState().set_campaigns([make_campaign()])
+      dm_dashboard_model.getState().set_selected_campaign(make_campaign())
+      dm_dashboard_model.getState().set_session({ join_code: 'ABC123' })
+      dm_dashboard_model.getState().set_active_map_id('map-1')
+      dm_dashboard_model.getState().add_joined_player(make_joined_player())
+
+      dm_dashboard_model.getState().reset()
+
+      expect(dm_dashboard_model.getState()).toMatchObject(INITIAL_STATE)
+    })
+  })
 })
