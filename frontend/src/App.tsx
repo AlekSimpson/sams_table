@@ -16,13 +16,13 @@ function RequireAuth() {
 /** Redirects non-DM users away from DM routes. */
 function RequireDM() {
   const { isDM } = session_viewmodel()
-  return isDM ? <Outlet /> : <Navigate to="/dm" replace />
+  return isDM ? <Outlet /> : <Navigate to="/play" replace />
 }
 
 /** Redirects non-player users away from player routes. */
 function RequirePlayer() {
   const { isPlayer } = session_viewmodel()
-  return isPlayer ? <Outlet /> : <Navigate to="/play" replace />
+  return isPlayer ? <Outlet /> : <Navigate to="/dm" replace />
 }
 
 export default function App() {
