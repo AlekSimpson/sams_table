@@ -204,6 +204,8 @@ export function dm_dashboard_viewmodel() {
         const new_map = await map_api.create(campaign_id, trimmed_name, grid_width, grid_height)
         set_maps((existing_maps) => [...existing_maps, new_map])
         navigate(`/dm/map-builder/${new_map.id}`)
+      } catch (err) {
+        set_new_map_validation_error(err instanceof Error ? err.message : 'Failed to create map')
       } finally {
         set_is_creating_map(false)
       }

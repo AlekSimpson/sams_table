@@ -399,7 +399,7 @@ describe('campaign_detail_panel_model', () => {
       expect(result.current.is_creating_map).toBe(false)
     })
 
-    it('leaves is_creating_map false and does not navigate when the API call fails', async () => {
+    it('leaves is_creating_map false, does not navigate, and sets new_map_validation_error when the API call fails', async () => {
       mock_map_api.create.mockRejectedValue(new Error('creation failed'))
       const { result } = render_campaign_detail_panel('campaign-1')
 
@@ -409,15 +409,14 @@ describe('campaign_detail_panel_model', () => {
         result.current.on_new_map_grid_height_change({ target: { value: '25' } } as React.ChangeEvent<HTMLInputElement>)
       })
 
-      await expect(
-        act(async () => {
-          await result.current.on_create_map_press()
-        })
-      ).rejects.toThrow('creation failed')
+      await act(async () => {
+        await result.current.on_create_map_press()
+      })
 
       expect(result.current.maps).toEqual([])
       expect(mock_navigate).not.toHaveBeenCalled()
       expect(result.current.is_creating_map).toBe(false)
+      expect(result.current.new_map_validation_error).toBe('creation failed')
     })
   })
 
