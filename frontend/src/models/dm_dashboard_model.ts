@@ -20,6 +20,7 @@ interface DmDashboardActions {
   add_joined_player: (player: JoinedPlayer) => void
   remove_joined_player: (user_id: string) => void
   clear_joined_players: () => void
+  reset: () => void
 }
 
 type DmDashboardModel = DmDashboardState & DmDashboardActions
@@ -53,4 +54,12 @@ export const dm_dashboard_model = create<DmDashboardModel>()((set) => ({
     })),
 
   clear_joined_players: () => set({ joined_players: [] }),
+
+  reset: () => set({
+    campaigns: [],
+    selected_campaign: null,
+    session: null,
+    active_map_id: null,
+    joined_players: [],
+  }),
 }))

@@ -9,6 +9,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="dm"
           is_in_session={false}
+          on_logout_press={vi.fn()}
           dm_props={{ join_code: '', copied: false, on_copy_press: vi.fn(), on_end_session_press: vi.fn() }}
         />
       )
@@ -23,6 +24,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="dm"
           is_in_session
+          on_logout_press={vi.fn()}
           dm_props={{ join_code: 'ABCD', copied: false, on_copy_press: vi.fn(), on_end_session_press: vi.fn() }}
         />
       )
@@ -37,6 +39,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="dm"
           is_in_session={false}
+          on_logout_press={vi.fn()}
           dm_props={{ join_code: 'ABCD', copied: false, on_copy_press: vi.fn(), on_end_session_press: vi.fn() }}
         />
       )
@@ -50,6 +53,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="dm"
           is_in_session
+          on_logout_press={vi.fn()}
           dm_props={{ join_code: 'ABCD', copied: false, on_copy_press: vi.fn(), on_end_session_press: vi.fn() }}
         />
       )
@@ -64,6 +68,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="dm"
           is_in_session
+          on_logout_press={vi.fn()}
           dm_props={{ join_code: 'ABCD', copied: true, on_copy_press: vi.fn(), on_end_session_press: vi.fn() }}
         />
       )
@@ -78,6 +83,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="dm"
           is_in_session
+          on_logout_press={vi.fn()}
           dm_props={{ join_code: 'ABCD', copied: false, on_copy_press, on_end_session_press: vi.fn() }}
         />
       )
@@ -93,6 +99,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="dm"
           is_in_session
+          on_logout_press={vi.fn()}
           dm_props={{ join_code: 'ABCD', copied: false, on_copy_press: vi.fn(), on_end_session_press }}
         />
       )
@@ -112,10 +119,18 @@ describe('SessionStatusBar', () => {
       is_joining: false,
       join_error: null,
       on_live_map_press: vi.fn(),
+      on_combat_press: vi.fn(),
     }
 
     it('renders the join code input and a disabled join button when the draft is empty', () => {
-      render(<SessionStatusBar role="player" is_in_session={false} player_props={base_player_props} />)
+      render(
+        <SessionStatusBar
+          role="player"
+          is_in_session={false}
+          on_logout_press={vi.fn()}
+          player_props={base_player_props}
+        />
+      )
 
       expect(screen.getByPlaceholderText('Join Code')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Join' })).toBeDisabled()
@@ -127,6 +142,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="player"
           is_in_session={false}
+          on_logout_press={vi.fn()}
           player_props={{ ...base_player_props, join_code_draft: 'ABCD', on_join_press }}
         />
       )
@@ -144,6 +160,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="player"
           is_in_session={false}
+          on_logout_press={vi.fn()}
           player_props={{ ...base_player_props, join_code_draft: 'ABCD', is_joining: true }}
         />
       )
@@ -157,6 +174,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="player"
           is_in_session={false}
+          on_logout_press={vi.fn()}
           player_props={{ ...base_player_props, join_error: 'Invalid join code' }}
         />
       )
@@ -170,6 +188,7 @@ describe('SessionStatusBar', () => {
         <SessionStatusBar
           role="player"
           is_in_session={false}
+          on_logout_press={vi.fn()}
           player_props={{ ...base_player_props, on_live_map_press }}
         />
       )
@@ -178,6 +197,38 @@ describe('SessionStatusBar', () => {
 
       expect(on_live_map_press).toHaveBeenCalledTimes(1)
     })
+
+    it('calls on_combat_press when the Combat button is clicked', () => {
+      const on_combat_press = vi.fn()
+      render(
+        <SessionStatusBar
+          role="player"
+          is_in_session={false}
+          on_logout_press={vi.fn()}
+          player_props={{ ...base_player_props, on_combat_press }}
+        />
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: 'Combat' }))
+
+      expect(on_combat_press).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('calls on_logout_press when the Log Out button is clicked', () => {
+    const on_logout_press = vi.fn()
+    render(
+      <SessionStatusBar
+        role="dm"
+        is_in_session
+        on_logout_press={on_logout_press}
+        dm_props={{ join_code: 'ABCD', copied: false, on_copy_press: vi.fn(), on_end_session_press: vi.fn() }}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Log Out' }))
+
+    expect(on_logout_press).toHaveBeenCalledTimes(1)
   })
 
   it('does not render a notification bell button', () => {
@@ -185,6 +236,7 @@ describe('SessionStatusBar', () => {
       <SessionStatusBar
         role="dm"
         is_in_session
+        on_logout_press={vi.fn()}
         dm_props={{ join_code: 'ABCD', copied: false, on_copy_press: vi.fn(), on_end_session_press: vi.fn() }}
       />
     )

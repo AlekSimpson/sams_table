@@ -110,6 +110,15 @@ function render_campaign_sidebar() {
   return renderHook(() => dm_dashboard_viewmodel().campaign_sidebar_model())
 }
 
+// create_campaign (called by campaign_sidebar_model's on_create_press) surfaces failures
+// via the outer hook's own dashboard_error state, so this renders both together.
+function render_campaign_sidebar_with_dashboard() {
+  return renderHook(() => {
+    const dashboard = dm_dashboard_viewmodel()
+    return { ...dashboard, ...dashboard.campaign_sidebar_model() }
+  })
+}
+
 // Accepts an initial campaign_id and, via renderHook's initialProps/rerender
 // mechanism, lets tests simulate a genuine campaign switch by re-rendering with a
 // different campaign_id (existing call sites that never call rerender are unaffected).
@@ -151,17 +160,16 @@ describe('select_campaign', () => {
     expect(dm_dashboard_model.getState().selected_campaign).toEqual(campaign)
   })
 
-  it('leaves the selected campaign untouched when the API call fails', async () => {
+  it('leaves the selected campaign untouched and sets dashboard_error when the API call fails', async () => {
     mock_campaign_api.get.mockRejectedValue(new Error('not found'))
     const { result } = render_dashboard()
 
-    await expect(
-      act(async () => {
-        await result.current.select_campaign('missing-campaign')
-      })
-    ).rejects.toThrow('not found')
+    await act(async () => {
+      await result.current.select_campaign('missing-campaign')
+    })
 
     expect(dm_dashboard_model.getState().selected_campaign).toBeNull()
+    expect(result.current.dashboard_error).toBe('not found')
   })
 })
 
@@ -190,18 +198,17 @@ describe('start_session', () => {
     expect(dm_dashboard_model.getState().session).toEqual({ join_code: 'ABC123' })
   })
 
-  it('leaves the session untouched when the API call fails', async () => {
+  it('leaves the session untouched and sets dashboard_error when the API call fails', async () => {
     dm_dashboard_model.getState().set_selected_campaign(make_campaign({ id: 'campaign-1' }))
     mock_session_api.start.mockRejectedValue(new Error('start failed'))
     const { result } = render_dashboard()
 
-    await expect(
-      act(async () => {
-        await result.current.start_session()
-      })
-    ).rejects.toThrow('start failed')
+    await act(async () => {
+      await result.current.start_session()
+    })
 
     expect(dm_dashboard_model.getState().session).toBeNull()
+    expect(result.current.dashboard_error).toBe('start failed')
   })
 })
 
@@ -234,21 +241,20 @@ describe('end_session', () => {
     expect(dm_dashboard_model.getState().joined_players).toEqual([])
   })
 
-  it('leaves the session and joined players untouched when the API call fails', async () => {
+  it('leaves the session and joined players untouched and sets dashboard_error when the API call fails', async () => {
     dm_dashboard_model.getState().set_selected_campaign(make_campaign({ id: 'campaign-1' }))
     dm_dashboard_model.getState().set_session({ join_code: 'ABC123' })
     dm_dashboard_model.getState().add_joined_player({ user_id: 'user-1', character_name: 'Thorian Ashvale' })
     mock_session_api.end.mockRejectedValue(new Error('end failed'))
     const { result } = render_dashboard()
 
-    await expect(
-      act(async () => {
-        await result.current.end_session()
-      })
-    ).rejects.toThrow('end failed')
+    await act(async () => {
+      await result.current.end_session()
+    })
 
     expect(dm_dashboard_model.getState().session).toEqual({ join_code: 'ABC123' })
     expect(dm_dashboard_model.getState().joined_players).toEqual([{ user_id: 'user-1', character_name: 'Thorian Ashvale' }])
+    expect(result.current.dashboard_error).toBe('end failed')
   })
 })
 
@@ -297,6 +303,21 @@ describe('campaign_sidebar_model', () => {
     })
 
     expect(mock_campaign_api.create).toHaveBeenCalledWith('The Sunken Spire', undefined)
+  })
+
+  it('sets dashboard_error and does not add the campaign when creation fails', async () => {
+    mock_campaign_api.create.mockRejectedValue(new Error('creation failed'))
+    const { result } = render_campaign_sidebar_with_dashboard()
+
+    act(() => {
+      result.current.on_name_change({ target: { value: 'The Sunken Spire' } } as React.ChangeEvent<HTMLInputElement>)
+    })
+    act(() => {
+      result.current.on_create_press()
+    })
+
+    await waitFor(() => expect(result.current.dashboard_error).toBe('creation failed'))
+    expect(dm_dashboard_model.getState().campaigns).toEqual([])
   })
 })
 
@@ -378,7 +399,7 @@ describe('campaign_detail_panel_model', () => {
       expect(result.current.is_creating_map).toBe(false)
     })
 
-    it('leaves is_creating_map false and does not navigate when the API call fails', async () => {
+    it('leaves is_creating_map false, does not navigate, and sets new_map_validation_error when the API call fails', async () => {
       mock_map_api.create.mockRejectedValue(new Error('creation failed'))
       const { result } = render_campaign_detail_panel('campaign-1')
 
@@ -388,15 +409,14 @@ describe('campaign_detail_panel_model', () => {
         result.current.on_new_map_grid_height_change({ target: { value: '25' } } as React.ChangeEvent<HTMLInputElement>)
       })
 
-      await expect(
-        act(async () => {
-          await result.current.on_create_map_press()
-        })
-      ).rejects.toThrow('creation failed')
+      await act(async () => {
+        await result.current.on_create_map_press()
+      })
 
       expect(result.current.maps).toEqual([])
       expect(mock_navigate).not.toHaveBeenCalled()
       expect(result.current.is_creating_map).toBe(false)
+      expect(result.current.new_map_validation_error).toBe('creation failed')
     })
   })
 
@@ -412,19 +432,19 @@ describe('campaign_detail_panel_model', () => {
 
       expect(mock_character_api.list_characters_in_campaign).toHaveBeenCalledWith('campaign-1')
       expect(result.current.characters).toEqual(characters)
+      expect(result.current.characters_error).toBeNull()
     })
 
-    it('leaves characters untouched when the API call fails', async () => {
+    it('leaves characters untouched and sets characters_error when the API call fails', async () => {
       mock_character_api.list_characters_in_campaign.mockRejectedValue(new Error('network error'))
       const { result } = render_campaign_detail_panel('campaign-1')
 
-      await expect(
-        act(async () => {
-          await result.current.load_characters()
-        })
-      ).rejects.toThrow('network error')
+      await act(async () => {
+        await result.current.load_characters()
+      })
 
       expect(result.current.characters).toEqual([])
+      expect(result.current.characters_error).toBe('network error')
     })
   })
 
@@ -504,19 +524,19 @@ describe('campaign_detail_panel_model', () => {
 
       expect(mock_campaign_api.list_maps).toHaveBeenCalledWith('campaign-1')
       expect(result.current.maps).toEqual(maps)
+      expect(result.current.maps_error).toBeNull()
     })
 
-    it('leaves maps untouched when the API call fails', async () => {
+    it('leaves maps untouched and sets maps_error when the API call fails', async () => {
       mock_campaign_api.list_maps.mockRejectedValue(new Error('network error'))
       const { result } = render_campaign_detail_panel('campaign-1')
 
-      await expect(
-        act(async () => {
-          await result.current.load_maps()
-        })
-      ).rejects.toThrow('network error')
+      await act(async () => {
+        await result.current.load_maps()
+      })
 
       expect(result.current.maps).toEqual([])
+      expect(result.current.maps_error).toBe('network error')
     })
   })
 
@@ -626,19 +646,19 @@ describe('map_selector_model', () => {
 
     expect(mock_campaign_api.list_maps).toHaveBeenCalledWith('campaign-1')
     expect(result.current.maps).toEqual(maps)
+    expect(result.current.maps_error).toBeNull()
   })
 
-  it('leaves maps untouched when the API call fails', async () => {
+  it('leaves maps untouched and sets maps_error when the API call fails', async () => {
     mock_campaign_api.list_maps.mockRejectedValue(new Error('network error'))
     const { result } = render_map_selector('campaign-1')
 
-    await expect(
-      act(async () => {
-        await result.current.load_maps()
-      })
-    ).rejects.toThrow('network error')
+    await act(async () => {
+      await result.current.load_maps()
+    })
 
     expect(result.current.maps).toEqual([])
+    expect(result.current.maps_error).toBe('network error')
   })
 })
 
@@ -660,21 +680,20 @@ describe('permission_panel_model', () => {
       expect(result.current.get_player_permissions('user-2')).toEqual(entries[1])
     })
 
-    it('leaves permissions untouched when the API call fails', async () => {
+    it('leaves permissions untouched and sets permissions_error when the API call fails', async () => {
       mock_permission_api.get.mockRejectedValue(new Error('network error'))
       const { result } = render_permission_panel('campaign-1')
 
-      await expect(
-        act(async () => {
-          await result.current.load_permissions()
-        })
-      ).rejects.toThrow('network error')
+      await act(async () => {
+        await result.current.load_permissions()
+      })
 
       expect(result.current.get_player_permissions('user-1')).toEqual({
         user_id: 'user-1',
         can_move_tokens: false,
         can_place_tiles: false,
       })
+      expect(result.current.permissions_error).toBe('network error')
     })
   })
 
@@ -729,7 +748,7 @@ describe('permission_panel_model', () => {
       })
     })
 
-    it('keeps the optimistic toggle applied when the API call fails', async () => {
+    it('keeps the optimistic toggle applied but sets permissions_error when the API call fails', async () => {
       mock_permission_api.get.mockResolvedValue([{ user_id: 'user-1', can_move_tokens: false, can_place_tiles: false }])
       mock_permission_api.set.mockRejectedValue(new Error('save failed'))
       const { result } = render_permission_panel('campaign-1')
@@ -750,14 +769,18 @@ describe('permission_panel_model', () => {
         can_place_tiles: false,
       })
 
-      await expect(toggle_promise).rejects.toThrow('save failed')
+      await act(async () => {
+        await toggle_promise
+      })
 
-      // No rollback on failure — the optimistic update remains applied.
+      // No rollback on failure — the optimistic update remains applied, but the
+      // failure is surfaced via permissions_error rather than an unhandled rejection.
       expect(result.current.get_player_permissions('user-1')).toEqual({
         user_id: 'user-1',
         can_move_tokens: true,
         can_place_tiles: false,
       })
+      expect(result.current.permissions_error).toBe('save failed')
     })
   })
 })

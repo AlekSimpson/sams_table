@@ -2,6 +2,10 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { session_model } from '../models/session_model'
+import { character_model } from '../models/character_model'
+import { map_model } from '../models/map_model'
+import { combat_model } from '../models/combat_model'
+import { dm_dashboard_model } from '../models/dm_dashboard_model'
 import { auth_api, session_api } from '../util/rest_client'
 import { websocket_hook } from '../util/websockets'
 import { JWTClaims, Role } from '../types/app_types'
@@ -64,8 +68,14 @@ export function session_viewmodel() {
     [set_session, navigate]
   )
 
+  // Also resets the other per-session stores so a subsequent login in the same tab
+  // doesn't inherit the previous user's characters, map, combat state, or DM dashboard data.
   const logout = useCallback(() => {
     clear_session()
+    character_model.getState().clear()
+    map_model.getState().reset()
+    combat_model.getState().reset()
+    dm_dashboard_model.getState().reset()
   }, [clear_session])
 
   function register_page_model() {

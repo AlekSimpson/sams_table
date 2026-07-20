@@ -24,6 +24,11 @@
   gap: var(--space-3);
 }
 
+.campaign-detail-panel__error {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
 .campaign-detail-panel__empty {
   padding: var(--space-9) var(--space-5);
   text-align: center;

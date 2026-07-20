@@ -1,10 +1,11 @@
 // VIEW layer — DM's compact sidebar panel for managing combat state during a session
-// (Initiative / HP / Conditions). Reuses combat_viewmodel's initiative_input_model logic
-// from the (unmounted) combat_tracker.tsx rather than duplicating it.
+// (Initiative / HP / Conditions). Renders InitiativeOrder for the published order plus
+// turn advancement, and combat_viewmodel's initiative_input_model logic for setting it.
 import { useEffect } from 'react'
 import { combat_viewmodel, COMBAT_CONDITIONS } from '../viewmodels/combat_viewmodel'
 import { character_viewmodel } from '../viewmodels/character_viewmodel'
 import { DNDCharacter } from '../types/dnd_types'
+import InitiativeOrder from './initiative_order'
 import { Badge, Button, Input, Panel } from './components'
 import '../../styles/dm_combat_controls_panel.css'
 
@@ -86,6 +87,14 @@ export default function DmCombatControlsPanel({ campaign_id }: DmCombatControlsP
     <div className="dm-combat-controls-panel">
       <Panel className="dm-combat-controls-panel__section">
         <span className="section-label">Initiative</span>
+
+        {combat.initiative_order.length > 0 && (
+          <InitiativeOrder
+            entries={combat.initiative_order}
+            activeTurnIndex={combat.active_turn_index}
+            onAdvanceTurn={combat.advance_turn}
+          />
+        )}
 
         <div className="dm-combat-controls-panel__list">
           {character_list.map((character) => (
