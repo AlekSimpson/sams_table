@@ -1,8 +1,9 @@
-import { character_api } from '../util/rest_client'
+import { character_api, rules_api } from '../util/rest_client'
+import { rules } from '../util/dnd_rules'
 import { Tab, DashboardTab } from '../types/app_types'
-import { DNDCharacter } from '../types/dnd_types'
+import { DNDCharacter, DNDClass, DNDRace } from '../types/dnd_types'
 import { character_model } from '../models/character_model'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const ABILITIES: { key: string; label: string; }[] = [
@@ -70,10 +71,28 @@ export function character_viewmodel() {
       const modifier = ability_modifier(score)
       return modifier >= 0 ? `+${modifier}` : `${modifier}` 
     }
-    const proficiency_bonus = (level: number) => 2 + Math.floor(Math.max(0, level - 1) / 4)
+    const proficiency_bonus = rules.proficiency_bonus
 
     const [active_tab, set_active_tab]     = useState<Tab>('combat')
     const [inspiration, set_inspiration]   = useState(false)
+    const [classes, set_classes]           = useState<DNDClass[]>([])
+    const [races, set_races]               = useState<DNDRace[]>([])
+
+    // Fetches the class/race rules catalog once per sheet mount, to populate the
+    // class/race pickers below — see rules_api / dnd_rules.ts. On failure, classes/races
+    // are simply left empty (the pickers show only their placeholder option).
+    useEffect(() => {
+      async function load_rules_catalog() {
+        try {
+          const [loaded_classes, loaded_races] = await Promise.all([rules_api.get_classes(), rules_api.get_races()])
+          set_classes(loaded_classes)
+          set_races(loaded_races)
+        } catch {
+          // ignore — pickers stay empty
+        }
+      }
+      load_rules_catalog()
+    }, [])
 
     // Holds the pre-edit value for a field currently being edited, so a failed
     // save can roll the optimistic update back. Reset to null once committed.
@@ -86,8 +105,32 @@ export function character_viewmodel() {
       patch({ stats: { ...character.stats, [key]: value } })
 
     const on_name_change        = (event: React.ChangeEvent<HTMLInputElement>) => patch({ name: event.target.value })
-    const on_class_change       = (event: React.ChangeEvent<HTMLInputElement>) => patch({ class: event.target.value })
-    const on_race_change        = (event: React.ChangeEvent<HTMLInputElement>) => patch({ race: event.target.value })
+
+    // Picking a class also recomputes max HP from the class's hit die and the character's
+    // current level + CON, via rules.calculate_max_hp — replacing the mock backend's
+    // hardcoded starting max_hp of 10. current_hp is only bumped to match when the
+    // character had no class yet (genuine creation) — re-picking a class on an already
+    // in-play character must not silently full-heal them.
+    const on_class_change = (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const selected_class = classes.find((dnd_class) => dnd_class.key === event.target.value)
+      if (!selected_class) { patch({ class: '' }); return }
+      const starting_max_hp = rules.calculate_max_hp(selected_class, character.level, character.stats.con)
+      const is_character_creation = character.class === ''
+      patch({
+        class: selected_class.name,
+        max_hp: starting_max_hp,
+        ...(is_character_creation ? { current_hp: starting_max_hp } : {}),
+      })
+    }
+
+    const on_race_change = (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const selected_race = races.find((dnd_race) => dnd_race.key === event.target.value)
+      patch({ race: selected_race?.name ?? '' })
+    }
+
+    const selected_class_key = classes.find((dnd_class) => dnd_class.name === character.class)?.key ?? ''
+    const selected_race_key  = races.find((dnd_race) => dnd_race.name === character.race)?.key ?? ''
+
     const on_max_hp_change      = (event: React.ChangeEvent<HTMLInputElement>) => patch({ max_hp: parseInt(event.target.value) })
     const on_ac_change          = (event: React.ChangeEvent<HTMLInputElement>) => patch({ armor_class: parseInt(event.target.value) })
     const on_speed_change       = (event: React.ChangeEvent<HTMLInputElement>) => patch({ speed: parseInt(event.target.value) })
@@ -209,6 +252,10 @@ export function character_viewmodel() {
       ability_modifier,
       format_modifier,
       proficiency_bonus,
+      classes,
+      races,
+      selected_class_key,
+      selected_race_key,
       on_name_change,
       on_class_change,
       on_race_change,
