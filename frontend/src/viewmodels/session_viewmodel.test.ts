@@ -1,7 +1,12 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { session_model } from '../models/session_model'
+import { character_model } from '../models/character_model'
+import { map_model } from '../models/map_model'
+import { combat_model } from '../models/combat_model'
+import { dm_dashboard_model } from '../models/dm_dashboard_model'
 import { SessionJoinResponse } from '../types/app_types'
+import { DNDCharacter } from '../types/dnd_types'
 
 // session_api is mocked at the module level (rather than letting calls fall through to the
 // mock backend) so every test controls success/failure directly, following the pattern in
@@ -31,6 +36,28 @@ vi.mock('react-router-dom', async (import_original) => {
 })
 
 import { session_viewmodel } from './session_viewmodel'
+
+function make_character(overrides: Partial<DNDCharacter> = {}): DNDCharacter {
+  return {
+    id: 'character-1',
+    campaign_id: 'campaign-1',
+    name: 'Thorian Ashvale',
+    class: 'Fighter',
+    race: 'Human',
+    level: 5,
+    max_hp: 44,
+    current_hp: 44,
+    armor_class: 17,
+    speed: 30,
+    stats: { str: 16, dex: 14, con: 14, int: 10, wis: 12, cha: 8 },
+    skill_profs: [],
+    conditions: [],
+    equipment: [],
+    notes: '',
+    created_at: '2026-01-01T00:00:00Z',
+    ...overrides,
+  }
+}
 
 function render_join_code_model() {
   return renderHook(() => session_viewmodel().join_code_model())
@@ -171,5 +198,33 @@ describe('join_code_model', () => {
 
     expect(mock_session_api.join).not.toHaveBeenCalled()
     expect(mock_send).not.toHaveBeenCalled()
+  })
+})
+
+describe('logout', () => {
+  it('clears the session and every other per-session store so a subsequent login does not inherit stale data', () => {
+    character_model.getState().set_character(make_character())
+    map_model.getState().set_active_map('map-1', [])
+    combat_model.getState().set_initiative_order([
+      { character_id: 'character-1', name: 'Thorian Ashvale', initiative: 15, is_npc: false },
+    ])
+    dm_dashboard_model.getState().set_selected_campaign({
+      id: 'campaign-1',
+      name: 'The Sunken Spire',
+      description: '',
+      dm_id: 'dm-1',
+      created_at: '2026-01-01T00:00:00Z',
+    })
+
+    const { result } = renderHook(() => session_viewmodel())
+    act(() => {
+      result.current.logout()
+    })
+
+    expect(session_model.getState().token).toBeNull()
+    expect(character_model.getState().characters).toEqual({})
+    expect(map_model.getState().active_map_id).toBeNull()
+    expect(combat_model.getState().initiative_order).toEqual([])
+    expect(dm_dashboard_model.getState().selected_campaign).toBeNull()
   })
 })

@@ -59,7 +59,7 @@ function CharacterSidebarItem({ character, is_selected, on_select }: CharacterSi
 export default function PlayerDashboard() {
   const { character_id } = useParams<PlayerDashboardParameters>()
   const { characters, load_user_characters, create_new_character_for_user, player_dashboard_model } = character_viewmodel()
-  const { join_code_model, active_map_id, user } = session_viewmodel()
+  const { join_code_model, active_map_id, user, logout } = session_viewmodel()
   const { notifications, remove_notification } = notification_viewmodel()
 
   // Focus mode merges the sidebar-collapse and pane-maximize toggles into one boolean,
@@ -111,6 +111,7 @@ export default function PlayerDashboard() {
           <SessionStatusBar
             role="player"
             is_in_session={is_in_session}
+            on_logout_press={logout}
             player_props={{
               join_code_draft: join_code.join_code_draft,
               on_join_code_change: join_code.on_join_code_change,
