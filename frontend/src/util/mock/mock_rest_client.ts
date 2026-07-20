@@ -132,8 +132,6 @@ export const mock_rules_api = {
 }
 
 export const mock_map_api = {
-  list: () => resolve_after_latency(() => mock_store.maps.slice()),
-
   create: (campaign_id: string, name: string, grid_width: number, grid_height: number) =>
     resolve_after_latency((): GameMap => {
       const map: GameMap = {
