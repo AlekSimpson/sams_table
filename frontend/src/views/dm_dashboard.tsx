@@ -42,6 +42,7 @@ export default function DMDashboard() {
     selected_campaign,
     joined_players,
     campaigns,
+    dashboard_error,
     load_campaigns,
     select_campaign,
     end_session,
@@ -96,6 +97,10 @@ export default function DMDashboard() {
           />
         }
       />
+
+      {dashboard_error && (
+        <div className="dm-dashboard__error" role="alert">{dashboard_error}</div>
+      )}
 
       {is_in_session ? (
         <div className="dm-dashboard__session-body">

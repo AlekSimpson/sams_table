@@ -27,6 +27,12 @@
   padding: var(--space-6);
 }
 
+.dm-dashboard__error {
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
 .dm-dashboard__map-region {
   flex: 1;
   display: flex;

@@ -7,6 +7,11 @@
   margin-top: var(--space-2);
 }
 
+.dm-permission-panel__error {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
 .dm-permission-panel__row {
   display: flex;
   align-items: center;
