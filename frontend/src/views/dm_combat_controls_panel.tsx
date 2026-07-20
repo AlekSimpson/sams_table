@@ -84,6 +84,10 @@ export default function DmCombatControlsPanel({ campaign_id }: DmCombatControlsP
 
   return (
     <div className="dm-combat-controls-panel">
+      {combat.character_update_error && (
+        <span className="dm-combat-controls-panel__error" role="alert">{combat.character_update_error}</span>
+      )}
+
       <Panel className="dm-combat-controls-panel__section">
         <span className="section-label">Initiative</span>
 
