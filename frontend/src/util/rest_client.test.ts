@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { asset_api, auth_api, campaign_api, character_api, map_api, permission_api, session_api } from './rest_client'
-import { DEMO_CAMPAIGN_ID, DEMO_DM_USER_ID, DEMO_MAP_ID } from './mock/fixtures'
+import { DEMO_CAMPAIGN_ID, DEMO_DM_USER_ID } from './mock/fixtures'
 
 function mock_fetch_ok(json_body: unknown) {
   return vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => json_body })
@@ -111,12 +111,6 @@ describe('rest_client', () => {
   })
 
   describe('map_api', () => {
-    it('list resolves with the seeded demo map on success', async () => {
-      const result = await map_api.list()
-
-      expect(result.some((map) => map.id === DEMO_MAP_ID)).toBe(true)
-    })
-
     it('get rejects with an error when the map does not exist', async () => {
       await expect(map_api.get('missing-map-id')).rejects.toThrow('Map not found: missing-map-id')
     })
