@@ -63,7 +63,7 @@ export function session_viewmodel() {
       const payload = JSON.parse(atob(result.token.split('.')[1])) as JWTClaims
 
       set_session(result.token, payload as JWTClaims, result.user)
-      navigate('/login')
+      navigate(payload.role === 'dm' ? '/dm' : '/play')
     },
     [set_session, navigate]
   )

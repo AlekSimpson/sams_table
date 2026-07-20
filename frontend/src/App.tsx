@@ -25,6 +25,13 @@ function RequirePlayer() {
   return isPlayer ? <Outlet /> : <Navigate to="/dm" replace />
 }
 
+/** Sends unknown paths to the user's own dashboard if authenticated, or /login otherwise. */
+function CatchAll() {
+  const { isAuthenticated, isDM } = session_viewmodel()
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  return <Navigate to={isDM ? '/dm' : '/play'} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -45,7 +52,7 @@ export default function App() {
         </Route>
 
         {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/register" replace />} />
+        <Route path="*" element={<CatchAll />} />
       </Routes>
     </BrowserRouter>
   )
