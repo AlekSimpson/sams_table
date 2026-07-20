@@ -77,10 +77,19 @@ export function character_viewmodel() {
     const [races, set_races]               = useState<DNDRace[]>([])
 
     // Fetches the class/race rules catalog once per sheet mount, to populate the
-    // class/race pickers below — see rules_api / dnd_rules.ts.
+    // class/race pickers below — see rules_api / dnd_rules.ts. On failure, classes/races
+    // are simply left empty (the pickers show only their placeholder option).
     useEffect(() => {
-      rules_api.get_classes().then(set_classes)
-      rules_api.get_races().then(set_races)
+      async function load_rules_catalog() {
+        try {
+          const [loaded_classes, loaded_races] = await Promise.all([rules_api.get_classes(), rules_api.get_races()])
+          set_classes(loaded_classes)
+          set_races(loaded_races)
+        } catch {
+          // ignore — pickers stay empty
+        }
+      }
+      load_rules_catalog()
     }, [])
 
     // Holds the pre-edit value for a field currently being edited, so a failed
@@ -95,14 +104,21 @@ export function character_viewmodel() {
 
     const on_name_change        = (event: React.ChangeEvent<HTMLInputElement>) => patch({ name: event.target.value })
 
-    // Picking a class also recomputes starting max/current HP from the class's hit die
-    // and the character's current level + CON, via rules.calculate_max_hp — replacing
-    // the mock backend's hardcoded starting max_hp of 10.
+    // Picking a class also recomputes max HP from the class's hit die and the character's
+    // current level + CON, via rules.calculate_max_hp — replacing the mock backend's
+    // hardcoded starting max_hp of 10. current_hp is only bumped to match when the
+    // character had no class yet (genuine creation) — re-picking a class on an already
+    // in-play character must not silently full-heal them.
     const on_class_change = (event: React.ChangeEvent<HTMLSelectElement>) => {
       const selected_class = classes.find((dnd_class) => dnd_class.key === event.target.value)
       if (!selected_class) { patch({ class: '' }); return }
       const starting_max_hp = rules.calculate_max_hp(selected_class, character.level, character.stats.con)
-      patch({ class: selected_class.name, max_hp: starting_max_hp, current_hp: starting_max_hp })
+      const is_character_creation = character.class === ''
+      patch({
+        class: selected_class.name,
+        max_hp: starting_max_hp,
+        ...(is_character_creation ? { current_hp: starting_max_hp } : {}),
+      })
     }
 
     const on_race_change = (event: React.ChangeEvent<HTMLSelectElement>) => {

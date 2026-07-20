@@ -495,6 +495,32 @@ describe('character_sheet_model', () => {
       await waitFor(() => expect(character_model.getState().characters[character.id]).toEqual(server_updated_character))
     })
 
+    it('recomputes max_hp but leaves current_hp untouched when re-picking a class on an already in-play character', async () => {
+      const character = make_character({
+        class: 'Fighter',
+        level: 3,
+        stats: { str: 10, dex: 10, con: 14, int: 10, wis: 10, cha: 10 },
+        max_hp: 44,
+        current_hp: 10, // already damaged
+      })
+      character_model.getState().set_character(character)
+      const server_updated_character = make_character({ class: 'Wizard', max_hp: 20, current_hp: 10 })
+      mock_character_api.update.mockResolvedValue(server_updated_character)
+      const { result } = render_character_sheet(character.id)
+      await waitFor(() => expect(result.current.classes.length).toBeGreaterThan(0))
+
+      act(() => {
+        result.current.on_class_change({ target: { value: 'wizard' } } as React.ChangeEvent<HTMLSelectElement>)
+      })
+
+      // wizard hit_die 6, con 14 (modifier +2): level 1 = 8, per level = 6, level 3 = 8 + 2*6 = 20
+      const optimistic_character = character_model.getState().characters[character.id]
+      expect(optimistic_character.class).toBe('Wizard')
+      expect(optimistic_character.max_hp).toBe(20)
+      expect(optimistic_character.current_hp).toBe(10) // unchanged, not full-healed
+      await waitFor(() => expect(character_model.getState().characters[character.id]).toEqual(server_updated_character))
+    })
+
     it('clears the class when the placeholder option is selected', async () => {
       const character = make_character({ class: 'Fighter' })
       character_model.getState().set_character(character)
