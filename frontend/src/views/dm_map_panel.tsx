@@ -13,7 +13,7 @@ interface DmMapPanelProps {
 
 export default function DmMapPanel({ campaign_id }: DmMapPanelProps) {
   const { active_map_id, set_active_map, map_selector_model } = dm_dashboard_viewmodel()
-  const { maps, load_maps } = map_selector_model(campaign_id)
+  const { maps, maps_error, load_maps } = map_selector_model(campaign_id)
   const { activate_map } = map_viewmodel()
   const [is_hidden_from_players, set_is_hidden_from_players] = useState(false)
 
@@ -56,6 +56,9 @@ export default function DmMapPanel({ campaign_id }: DmMapPanelProps) {
         >
           {is_hidden_from_players ? 'Map hidden from players' : 'Hide map from players'}
         </Button>
+        {maps_error && (
+          <span className="dm-map-panel__error" role="alert">{maps_error}</span>
+        )}
       </Panel>
 
       <div className="dm-map-panel__canvas">

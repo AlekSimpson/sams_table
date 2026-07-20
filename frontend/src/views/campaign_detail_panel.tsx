@@ -75,6 +75,9 @@ export default function CampaignDetailPanel({ campaign }: CampaignDetailPanelPro
           </div>
         ) : (
           <div className="campaign-detail-panel__list">
+            {model.characters_error && (
+              <div className="campaign-detail-panel__error" role="alert">{model.characters_error}</div>
+            )}
             {model.characters.length === 0 ? (
               <div className="campaign-detail-panel__empty">No characters in this campaign yet.</div>
             ) : (
@@ -155,6 +158,9 @@ export default function CampaignDetailPanel({ campaign }: CampaignDetailPanelPro
               </Button>
             </Panel>
 
+            {model.maps_error && (
+              <div className="campaign-detail-panel__error" role="alert">{model.maps_error}</div>
+            )}
             {model.maps.length === 0 ? (
               <div className="campaign-detail-panel__empty">No maps in this campaign yet.</div>
             ) : (

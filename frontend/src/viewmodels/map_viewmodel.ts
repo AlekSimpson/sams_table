@@ -5,7 +5,7 @@ import { map_api, permission_api } from '../util/rest_client'
 import { websocket_hook } from '../util/websockets'
 import { GameMap, MapTile } from '../types/game_types'
 import { CampaignPermissionEntry } from '../types/dnd_types'
-import { MapActivatedPayload, MapTilePlacedPayload, TokenMovedPayload } from '../types/websocket_types'
+import { MapActivatedPayload, MapTilePlacedPayload, MapTileRemovedPayload, TokenMovedPayload } from '../types/websocket_types'
 
 export function map_viewmodel() {
   const { tiles, tokens, mode, selected_asset, active_map_id, tiles_loading, set_mode, set_selected_asset, place_tile, remove_tile, move_token: move_token_in_store, set_active_map, set_tokens, set_tiles_loading } = map_model()
@@ -54,18 +54,21 @@ export function map_viewmodel() {
     [place_tile, send]
   )
 
-  /** DM: remove a tile in the builder and persist the full tile list via REST. */
+  /** DM: remove a tile in the builder and persist the full tile list via REST, then
+   *  broadcast map_tile_removed so other connected clients pick up the removal (see
+   *  dispatch_websocket_event's map_tile_removed case in websockets.ts). */
   const remove_map_tile = useCallback(
     async (map_ID: string, tile_ID: string) => {
       remove_tile(tile_ID)
       set_tiles_error(null)
       try {
         await map_api.putTiles(map_ID, map_model.getState().tiles)
+        send<MapTileRemovedPayload>('map_tile_removed', { tile_id: tile_ID })
       } catch (err) {
         set_tiles_error(err instanceof Error ? err.message : 'Failed to save map tiles')
       }
     },
-    [remove_tile]
+    [remove_tile, send]
   )
 
   /** Load map tiles + tokens from REST (used on initial page load before any WS sync). */

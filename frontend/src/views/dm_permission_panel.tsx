@@ -13,7 +13,7 @@ interface DmPermissionPanelProps {
 
 export default function DmPermissionPanel({ campaign_id }: DmPermissionPanelProps) {
   const { joined_players, permission_panel_model } = dm_dashboard_viewmodel()
-  const { get_player_permissions, load_permissions, toggle_permission } = permission_panel_model(campaign_id)
+  const { get_player_permissions, load_permissions, toggle_permission, permissions_error } = permission_panel_model(campaign_id)
 
   useEffect(() => {
     load_permissions()
@@ -25,6 +25,9 @@ export default function DmPermissionPanel({ campaign_id }: DmPermissionPanelProp
 
   return (
     <div className="dm-permission-panel">
+      {permissions_error && (
+        <div className="dm-permission-panel__error" role="alert">{permissions_error}</div>
+      )}
       {joined_players.map((player) => {
         const player_permissions = get_player_permissions(player.user_id)
         return (

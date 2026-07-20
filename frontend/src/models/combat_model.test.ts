@@ -115,4 +115,16 @@ describe('combat_model', () => {
       ])
     })
   })
+
+  describe('reset', () => {
+    it('restores every field to its initial default', () => {
+      combat_model.getState().set_initiative_order([make_initiative_entry()])
+      combat_model.getState().set_last_dice_roll_result(make_dice_roll_result())
+      combat_model.getState().add_dice_roll_result(make_dice_roll_result())
+
+      combat_model.getState().reset()
+
+      expect(combat_model.getState()).toMatchObject(INITIAL_STATE)
+    })
+  })
 })
