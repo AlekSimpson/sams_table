@@ -131,6 +131,38 @@ test('Unauthenticated access to DM-only or player-only routes redirects to /logi
   }
 })
 
+// Regression test for ST-176: RequireDM/RequirePlayer used to redirect a rejected user back
+// into a route gated by the same guard (e.g. RequireDM denying access by navigating to /dm,
+// which re-triggers RequireDM) — an infinite redirect loop. Each guard's deny branch must send
+// the wrong-role user to their own role's home instead.
+test('Authenticated player navigating to a DM-only route redirects to /play, not a loop', async ({ page }) => {
+  await login_as_player_and_open_character_dashboard(page)
+
+  const dm_only_routes = ['/dm', '/dm/map-builder/some-fake-map-id']
+  for (const route of dm_only_routes) {
+    await page.goto(route)
+    // /play itself further redirects to the player's own character dashboard (see
+    // login_as_player_and_open_character_dashboard's doc comment) — the important assertion
+    // here is that the URL settles on a /play* route rather than looping back to /dm.
+    await expect(page).toHaveURL(/\/play\/dashboard\//)
+  }
+})
+
+test('Authenticated DM navigating to a player-only route redirects to /dm, not a loop', async ({ page }) => {
+  await page.goto('/login')
+  await page.getByLabel('Username').fill('dm_demo')
+  await page.getByLabel('Password').fill('any-password')
+  await page.getByLabel('Signing in as a player').uncheck()
+  await page.getByRole('button', { name: 'Sign In' }).click()
+  await expect(page).toHaveURL('/dm')
+
+  const player_only_routes = ['/play', '/play/dashboard/some-fake-character-id']
+  for (const route of player_only_routes) {
+    await page.goto(route)
+    await expect(page).toHaveURL('/dm')
+  }
+})
+
 // --- Permission-gated token move ---------------------------------------------------
 //
 // NOTE on feasibility (read before changing this test): the ticket's literal scenario —
