@@ -1,7 +1,7 @@
 // Shared component — role-aware top-bar session chrome: status dot, join-code UI
-// (DM display/copy/end-session vs. player entry form), a Live Map button (player only),
-// a notification icon slot (functionality lands in a later ticket — this is the
-// visual placeholder only), and a Log Out button (shared across roles).
+// (DM display/copy/end-session vs. player entry form), Live Map and Combat buttons
+// (player only), a notification icon slot (functionality lands in a later ticket —
+// this is the visual placeholder only), and a Log Out button (shared across roles).
 import { ChangeEvent, KeyboardEvent } from 'react'
 import Badge from './badge'
 import Button from './button'
@@ -23,6 +23,7 @@ interface PlayerJoinCodeProps {
   is_joining: boolean
   join_error: string | null
   on_live_map_press: () => void
+  on_combat_press: () => void
 }
 
 type SessionStatusBarProps = { on_logout_press: () => void } & (
@@ -85,6 +86,9 @@ export default function SessionStatusBar(props: SessionStatusBarProps) {
           </div>
           <Button variant="ghost" size="small" onClick={props.player_props.on_live_map_press}>
             Live Map
+          </Button>
+          <Button variant="ghost" size="small" onClick={props.player_props.on_combat_press}>
+            Combat
           </Button>
         </>
       )}
