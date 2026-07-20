@@ -18,6 +18,11 @@
   max-width: 240px;
 }
 
+.dm-map-panel__error {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
 /* Player's read-only equivalent of the DM's map-select dropdown — see player_map_panel.tsx. */
 .dm-map-panel__map-name {
   font-size: var(--font-size-md);

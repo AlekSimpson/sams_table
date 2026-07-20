@@ -24,24 +24,40 @@ export function dm_dashboard_viewmodel() {
     clear_joined_players,
   } = dm_dashboard_model()
   const navigate = useNavigate()
+  const [dashboard_error, set_dashboard_error] = useState<string | null>(null)
 
   const load_campaigns = useCallback(async () => {
-    const loaded_campaigns = await campaign_api.list()
-    set_campaigns(loaded_campaigns)
+    set_dashboard_error(null)
+    try {
+      const loaded_campaigns = await campaign_api.list()
+      set_campaigns(loaded_campaigns)
+    } catch (err) {
+      set_dashboard_error(err instanceof Error ? err.message : 'Failed to load campaigns')
+    }
   }, [set_campaigns])
 
   const create_campaign = useCallback(
     async (name: string, description?: string) => {
-      const new_campaign = await campaign_api.create(name, description)
-      add_campaign(new_campaign)
+      set_dashboard_error(null)
+      try {
+        const new_campaign = await campaign_api.create(name, description)
+        add_campaign(new_campaign)
+      } catch (err) {
+        set_dashboard_error(err instanceof Error ? err.message : 'Failed to create campaign')
+      }
     },
     [add_campaign]
   )
 
   const select_campaign = useCallback(
     async (campaign_id: string) => {
-      const campaign = await campaign_api.get(campaign_id)
-      set_selected_campaign(campaign)
+      set_dashboard_error(null)
+      try {
+        const campaign = await campaign_api.get(campaign_id)
+        set_selected_campaign(campaign)
+      } catch (err) {
+        set_dashboard_error(err instanceof Error ? err.message : 'Failed to load campaign')
+      }
     },
     [set_selected_campaign]
   )
@@ -49,16 +65,26 @@ export function dm_dashboard_viewmodel() {
   const start_session = useCallback(async () => {
     const current_campaign = dm_dashboard_model.getState().selected_campaign
     if (!current_campaign) return
-    const started_session = await session_api.start(current_campaign.id)
-    set_session(started_session)
+    set_dashboard_error(null)
+    try {
+      const started_session = await session_api.start(current_campaign.id)
+      set_session(started_session)
+    } catch (err) {
+      set_dashboard_error(err instanceof Error ? err.message : 'Failed to start session')
+    }
   }, [set_session])
 
   const end_session = useCallback(async () => {
     const current_campaign = dm_dashboard_model.getState().selected_campaign
     if (!current_campaign) return
-    await session_api.end(current_campaign.id)
-    set_session(null)
-    clear_joined_players()
+    set_dashboard_error(null)
+    try {
+      await session_api.end(current_campaign.id)
+      set_session(null)
+      clear_joined_players()
+    } catch (err) {
+      set_dashboard_error(err instanceof Error ? err.message : 'Failed to end session')
+    }
   }, [set_session, clear_joined_players])
 
   /** Sidebar's campaign folder list: "+ New Campaign" create-form state (see dm_dashboard.tsx's
@@ -98,6 +124,8 @@ export function dm_dashboard_viewmodel() {
     const [is_creating_map, set_is_creating_map] = useState(false)
     const [selected_character_id, set_selected_character_id] = useState<string | null>(null)
     const [selected_map_id, set_selected_map_id] = useState<string | null>(null)
+    const [characters_error, set_characters_error] = useState<string | null>(null)
+    const [maps_error, set_maps_error] = useState<string | null>(null)
 
     const on_characters_tab_press = () => set_current_tab('characters')
     const on_maps_tab_press = () => set_current_tab('maps')
@@ -123,13 +151,23 @@ export function dm_dashboard_viewmodel() {
     }, [campaign_id])
 
     const load_characters = useCallback(async () => {
-      const loaded_characters = await character_api.list_characters_in_campaign(campaign_id)
-      set_characters(loaded_characters)
+      set_characters_error(null)
+      try {
+        const loaded_characters = await character_api.list_characters_in_campaign(campaign_id)
+        set_characters(loaded_characters)
+      } catch (err) {
+        set_characters_error(err instanceof Error ? err.message : 'Failed to load characters')
+      }
     }, [campaign_id])
 
     const load_maps = useCallback(async () => {
-      const loaded_maps = await campaign_api.list_maps(campaign_id)
-      set_maps(loaded_maps)
+      set_maps_error(null)
+      try {
+        const loaded_maps = await campaign_api.list_maps(campaign_id)
+        set_maps(loaded_maps)
+      } catch (err) {
+        set_maps_error(err instanceof Error ? err.message : 'Failed to load maps')
+      }
     }, [campaign_id])
 
     const on_new_map_name_change = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,7 +222,9 @@ export function dm_dashboard_viewmodel() {
       on_map_select,
       on_back_to_maps_press,
       load_characters,
+      characters_error,
       load_maps,
+      maps_error,
       new_map_name,
       new_map_grid_width_draft,
       new_map_grid_height_draft,
@@ -213,13 +253,19 @@ export function dm_dashboard_viewmodel() {
   /** In-session map dropdown: list of maps for the active campaign. */
   function map_selector_model(campaign_id: string) {
     const [maps, set_maps] = useState<GameMap[]>([])
+    const [maps_error, set_maps_error] = useState<string | null>(null)
 
     const load_maps = useCallback(async () => {
-      const loaded_maps = await campaign_api.list_maps(campaign_id)
-      set_maps(loaded_maps)
+      set_maps_error(null)
+      try {
+        const loaded_maps = await campaign_api.list_maps(campaign_id)
+        set_maps(loaded_maps)
+      } catch (err) {
+        set_maps_error(err instanceof Error ? err.message : 'Failed to load maps')
+      }
     }, [campaign_id])
 
-    return { maps, load_maps }
+    return { maps, maps_error, load_maps }
   }
 
   /** In-session Permissions panel: load each player's map permissions and persist
@@ -227,14 +273,20 @@ export function dm_dashboard_viewmodel() {
    *  "toggle button, immediate persist" pattern. */
   function permission_panel_model(campaign_id: string) {
     const [permissions_by_user_id, set_permissions_by_user_id] = useState<Record<string, CampaignPermissionEntry>>({})
+    const [permissions_error, set_permissions_error] = useState<string | null>(null)
 
     const load_permissions = useCallback(async () => {
-      const loaded_permissions = await permission_api.get(campaign_id)
-      const loaded_permissions_by_user_id: Record<string, CampaignPermissionEntry> = {}
-      for (const entry of loaded_permissions) {
-        loaded_permissions_by_user_id[entry.user_id] = entry
+      set_permissions_error(null)
+      try {
+        const loaded_permissions = await permission_api.get(campaign_id)
+        const loaded_permissions_by_user_id: Record<string, CampaignPermissionEntry> = {}
+        for (const entry of loaded_permissions) {
+          loaded_permissions_by_user_id[entry.user_id] = entry
+        }
+        set_permissions_by_user_id(loaded_permissions_by_user_id)
+      } catch (err) {
+        set_permissions_error(err instanceof Error ? err.message : 'Failed to load permissions')
       }
-      set_permissions_by_user_id(loaded_permissions_by_user_id)
     }, [campaign_id])
 
     /** A newly-joined player may not have a permission record yet — default to off. */
@@ -253,15 +305,20 @@ export function dm_dashboard_viewmodel() {
           [permission_field]: !current_permissions[permission_field],
         }
         set_permissions_by_user_id((existing) => ({ ...existing, [user_id]: updated_permissions }))
-        await permission_api.set(campaign_id, user_id, {
-          can_move_tokens: updated_permissions.can_move_tokens,
-          can_place_tiles: updated_permissions.can_place_tiles,
-        })
+        set_permissions_error(null)
+        try {
+          await permission_api.set(campaign_id, user_id, {
+            can_move_tokens: updated_permissions.can_move_tokens,
+            can_place_tiles: updated_permissions.can_place_tiles,
+          })
+        } catch (err) {
+          set_permissions_error(err instanceof Error ? err.message : 'Failed to update permissions')
+        }
       },
       [campaign_id, permissions_by_user_id]
     )
 
-    return { get_player_permissions, load_permissions, toggle_permission }
+    return { get_player_permissions, load_permissions, toggle_permission, permissions_error }
   }
 
   return {
@@ -270,6 +327,7 @@ export function dm_dashboard_viewmodel() {
     session,
     active_map_id,
     joined_players,
+    dashboard_error,
     load_campaigns,
     select_campaign,
     start_session,
