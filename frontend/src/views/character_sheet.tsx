@@ -202,18 +202,28 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
               placeholder="Character Name"
             />
             <div className="cs__char-tags">
-              <input
+              <select
                 className="cs__tag cs__tag--class"
-                value={character.class}
+                aria-label="Class"
+                value={model.selected_class_key}
                 onChange={model.on_class_change}
-                placeholder="Class"
-              />
-              <input
+              >
+                <option value="">Class</option>
+                {model.classes.map((dnd_class) => (
+                  <option key={dnd_class.key} value={dnd_class.key}>{dnd_class.name}</option>
+                ))}
+              </select>
+              <select
                 className="cs__tag cs__tag--race"
-                value={character.race}
+                aria-label="Race"
+                value={model.selected_race_key}
                 onChange={model.on_race_change}
-                placeholder="Race"
-              />
+              >
+                <option value="">Race</option>
+                {model.races.map((dnd_race) => (
+                  <option key={dnd_race.key} value={dnd_race.key}>{dnd_race.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 

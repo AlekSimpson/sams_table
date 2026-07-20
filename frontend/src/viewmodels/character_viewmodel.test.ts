@@ -1,12 +1,12 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { character_model } from '../models/character_model'
-import { DNDCharacter } from '../types/dnd_types'
+import { DNDCharacter, DNDClass, DNDRace } from '../types/dnd_types'
 
-// character_api is mocked at the module level (rather than letting calls fall through
-// to the mock backend) so every test controls success/failure directly and none of them
-// pay for the mock backend's simulated network latency.
-const { mock_character_api, mock_navigate } = vi.hoisted(() => ({
+// character_api/rules_api are mocked at the module level (rather than letting calls fall
+// through to the mock backend) so every test controls success/failure directly and none
+// of them pay for the mock backend's simulated network latency.
+const { mock_character_api, mock_rules_api, mock_navigate } = vi.hoisted(() => ({
   mock_character_api: {
     list_characters_in_campaign: vi.fn<(campaign_id: string) => Promise<DNDCharacter[]>>(),
     list_user_characters: vi.fn<(user_id: string) => Promise<DNDCharacter[]>>(),
@@ -15,11 +15,16 @@ const { mock_character_api, mock_navigate } = vi.hoisted(() => ({
     update: vi.fn<(id: string, data: Partial<DNDCharacter>) => Promise<DNDCharacter>>(),
     delete: vi.fn<(id: string) => Promise<void>>(),
   },
+  mock_rules_api: {
+    get_classes: vi.fn<() => Promise<DNDClass[]>>(),
+    get_races: vi.fn<() => Promise<DNDRace[]>>(),
+  },
   mock_navigate: vi.fn(),
 }))
 
 vi.mock('../util/rest_client', () => ({
   character_api: mock_character_api,
+  rules_api: mock_rules_api,
 }))
 
 vi.mock('react-router-dom', async (import_original) => {
@@ -28,6 +33,47 @@ vi.mock('react-router-dom', async (import_original) => {
 })
 
 import { character_viewmodel } from './character_viewmodel'
+
+const FIGHTER_CLASS: DNDClass = {
+  key: 'fighter',
+  name: 'Fighter',
+  hit_die: 10,
+  saving_throws: ['str', 'con'],
+  primary_ability: ['str', 'dex'],
+  armor_proficiencies: ['light', 'medium', 'heavy', 'shields'],
+  weapon_proficiencies: ['simple', 'martial'],
+  num_skill_proficiencies: 2,
+}
+
+const WIZARD_CLASS: DNDClass = {
+  key: 'wizard',
+  name: 'Wizard',
+  hit_die: 6,
+  saving_throws: ['int', 'wis'],
+  primary_ability: ['int'],
+  spellcasting_ability: 'int',
+  armor_proficiencies: [],
+  weapon_proficiencies: ['dagger'],
+  num_skill_proficiencies: 2,
+}
+
+const HUMAN_RACE: DNDRace = {
+  key: 'human',
+  name: 'Human',
+  stat_bonuses: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 },
+  size: 'Medium',
+  base_speed: 30,
+  traits: ['Extra Language'],
+}
+
+const ELF_RACE: DNDRace = {
+  key: 'elf',
+  name: 'Elf',
+  stat_bonuses: { dex: 2 },
+  size: 'Medium',
+  base_speed: 30,
+  traits: ['Darkvision', 'Fey Ancestry', 'Trance'],
+}
 
 function make_character(overrides: Partial<DNDCharacter> = {}): DNDCharacter {
   return {
@@ -69,6 +115,8 @@ function render_character_card(character: DNDCharacter) {
 beforeEach(() => {
   character_model.getState().clear()
   vi.resetAllMocks()
+  mock_rules_api.get_classes.mockResolvedValue([FIGHTER_CLASS, WIZARD_CLASS])
+  mock_rules_api.get_races.mockResolvedValue([HUMAN_RACE, ELF_RACE])
 })
 
 describe('character_sheet_model', () => {
@@ -399,6 +447,84 @@ describe('character_sheet_model', () => {
       await waitFor(() =>
         expect(character_model.getState().characters[character.id].equipment).toEqual(['Longsword', 'Shield'])
       )
+    })
+  })
+
+  describe('class/race picker', () => {
+    it('exposes the rules catalog fetched from rules_api', async () => {
+      const character = make_character()
+      character_model.getState().set_character(character)
+      const { result } = render_character_sheet(character.id)
+
+      await waitFor(() => expect(result.current.classes).toEqual([FIGHTER_CLASS, WIZARD_CLASS]))
+      expect(result.current.races).toEqual([HUMAN_RACE, ELF_RACE])
+    })
+
+    it("resolves selected_class_key/selected_race_key from the character's stored class/race name", async () => {
+      const character = make_character({ class: 'Wizard', race: 'Elf' })
+      character_model.getState().set_character(character)
+      const { result } = render_character_sheet(character.id)
+
+      await waitFor(() => expect(result.current.selected_class_key).toBe('wizard'))
+      expect(result.current.selected_race_key).toBe('elf')
+    })
+
+    it('recomputes starting max_hp and current_hp via rules.calculate_max_hp when a class is picked', async () => {
+      const character = make_character({
+        class: '',
+        level: 3,
+        stats: { str: 10, dex: 10, con: 14, int: 10, wis: 10, cha: 10 },
+        max_hp: 10,
+        current_hp: 10,
+      })
+      character_model.getState().set_character(character)
+      const server_updated_character = make_character({ class: 'Wizard', max_hp: 20, current_hp: 20 })
+      mock_character_api.update.mockResolvedValue(server_updated_character)
+      const { result } = render_character_sheet(character.id)
+      await waitFor(() => expect(result.current.classes.length).toBeGreaterThan(0))
+
+      act(() => {
+        result.current.on_class_change({ target: { value: 'wizard' } } as React.ChangeEvent<HTMLSelectElement>)
+      })
+
+      // wizard hit_die 6, con 14 (modifier +2): level 1 = 8, per level = 6, level 3 = 8 + 2*6 = 20
+      const optimistic_character = character_model.getState().characters[character.id]
+      expect(optimistic_character.class).toBe('Wizard')
+      expect(optimistic_character.max_hp).toBe(20)
+      expect(optimistic_character.current_hp).toBe(20)
+      await waitFor(() => expect(character_model.getState().characters[character.id]).toEqual(server_updated_character))
+    })
+
+    it('clears the class when the placeholder option is selected', async () => {
+      const character = make_character({ class: 'Fighter' })
+      character_model.getState().set_character(character)
+      const server_updated_character = make_character({ class: '' })
+      mock_character_api.update.mockResolvedValue(server_updated_character)
+      const { result } = render_character_sheet(character.id)
+      await waitFor(() => expect(result.current.classes.length).toBeGreaterThan(0))
+
+      act(() => {
+        result.current.on_class_change({ target: { value: '' } } as React.ChangeEvent<HTMLSelectElement>)
+      })
+
+      expect(character_model.getState().characters[character.id].class).toBe('')
+      await waitFor(() => expect(character_model.getState().characters[character.id]).toEqual(server_updated_character))
+    })
+
+    it('patches the race name when a race is picked', async () => {
+      const character = make_character({ race: 'Human' })
+      character_model.getState().set_character(character)
+      const server_updated_character = make_character({ race: 'Elf' })
+      mock_character_api.update.mockResolvedValue(server_updated_character)
+      const { result } = render_character_sheet(character.id)
+      await waitFor(() => expect(result.current.races.length).toBeGreaterThan(0))
+
+      act(() => {
+        result.current.on_race_change({ target: { value: 'elf' } } as React.ChangeEvent<HTMLSelectElement>)
+      })
+
+      expect(character_model.getState().characters[character.id].race).toBe('Elf')
+      await waitFor(() => expect(character_model.getState().characters[character.id]).toEqual(server_updated_character))
     })
   })
 })
