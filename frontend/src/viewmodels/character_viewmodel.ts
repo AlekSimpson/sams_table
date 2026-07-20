@@ -53,12 +53,14 @@ export function character_viewmodel() {
 
     const on_sheet_tab_press = () => set_current_tab('sheet')
     const on_map_tab_press   = () => set_current_tab('map')
+    const on_combat_tab_press = () => set_current_tab('combat')
 
     return {
       current_tab,
       set_current_tab,
       on_sheet_tab_press,
-      on_map_tab_press
+      on_map_tab_press,
+      on_combat_tab_press
     }
   }
 

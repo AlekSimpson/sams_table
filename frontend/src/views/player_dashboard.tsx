@@ -5,12 +5,14 @@ import { useEffect, useState } from 'react'
 import { character_viewmodel } from "../viewmodels/character_viewmodel"
 import { session_viewmodel } from "../viewmodels/session_viewmodel"
 import { notification_viewmodel } from "../viewmodels/notification_viewmodel"
+import { combat_viewmodel } from "../viewmodels/combat_viewmodel"
 import { useParams } from 'react-router-dom'
 import CharacterSheet from './character_sheet'
 import PlayerMapPanel from './player_map_panel'
+import InitiativeOrder from './initiative_order'
 import { DNDCharacter } from '../types/dnd_types'
 import { PlayerDashboardParameters } from "../types/app_types"
-import { Avatar, Button, Card, NotificationCenter, SessionStatusBar, Sidebar, SIDEBAR_COLLAPSED_STORAGE_KEY, TopBar } from './components'
+import { Avatar, Button, Card, NotificationCenter, Panel, SessionStatusBar, Sidebar, SIDEBAR_COLLAPSED_STORAGE_KEY, TopBar } from './components'
 import '../../styles/player_dashboard.css'
 
 interface CharacterSidebarItemProps {
@@ -61,6 +63,7 @@ export default function PlayerDashboard() {
   const { characters, load_user_characters, create_new_character_for_user, player_dashboard_model } = character_viewmodel()
   const { join_code_model, active_map_id, user } = session_viewmodel()
   const { notifications, remove_notification } = notification_viewmodel()
+  const combat = combat_viewmodel()
 
   // Focus mode merges the sidebar-collapse and pane-maximize toggles into one boolean,
   // driving both the Sidebar and Card's controlled state at once. Persisted under the same
@@ -119,6 +122,7 @@ export default function PlayerDashboard() {
               is_joining: join_code.is_joining,
               join_error: join_code.join_error,
               on_live_map_press: model.on_map_tab_press,
+              on_combat_press: model.on_combat_tab_press,
             }}
           />
         }
@@ -162,6 +166,16 @@ export default function PlayerDashboard() {
           <main className="player-dashboard__content">
             {model.current_tab === 'sheet' && <CharacterSheet character_id={character_id} />}
             {model.current_tab === 'map' && <PlayerMapPanel active_map_id={active_map_id} />}
+            {model.current_tab === 'combat' && (
+              <Panel>
+                <span className="section-label">Initiative Order</span>
+                <InitiativeOrder
+                  entries={combat.initiative_order}
+                  activeTurnIndex={combat.active_turn_index}
+                  onAdvanceTurn={combat.advance_turn}
+                />
+              </Panel>
+            )}
           </main>
         </Card>
       </div>
