@@ -68,10 +68,6 @@
   gap: var(--space-3);
 }
 
-.campaign-detail-panel__back-button {
-  margin-left: auto;
-}
-
 .campaign-detail-panel__character-sheet-body {
   flex: 1;
   min-height: 0;
