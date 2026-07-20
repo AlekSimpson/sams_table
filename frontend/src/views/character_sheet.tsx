@@ -56,7 +56,7 @@ function CombatTab() {
             <div className="cs__effect-title">Global Attack Modifier</div>
             <div className="cs__effect-sub">No active effect</div>
           </div>
-          <Button variant="secondary" size="small">Modify</Button>
+          <Button variant="secondary" size="small" disabled title="Coming soon">Modify</Button>
         </Card>
       </div>
 
@@ -329,8 +329,8 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
             <div className="cs__hp-controls">
               <button className="cs__hp-btn cs__hp-btn--dec" onClick={on_hp_dec}>−</button>
               <button className="cs__hp-btn cs__hp-btn--inc" onClick={on_hp_inc}>+</button>
-              <Button variant="secondary" size="small" className="cs__rest-btn">☽ Short</Button>
-              <Button variant="secondary" size="small" className="cs__rest-btn">✦ Long</Button>
+              <Button variant="secondary" size="small" className="cs__rest-btn" disabled title="Coming soon">☽ Short</Button>
+              <Button variant="secondary" size="small" className="cs__rest-btn" disabled title="Coming soon">✦ Long</Button>
             </div>
           </Panel>
         </div>
