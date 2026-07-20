@@ -47,6 +47,7 @@ const TABS: { id: Tab; label: string }[] = [
 export function character_viewmodel() {
   const { characters, set_characters, set_character, remove_character, update_hp, update_conditions} = character_model()
   const navigate = useNavigate()
+  const [character_update_error, set_character_update_error] = useState<string | null>(null)
   //const { send } = useWebSocket()
 
   function player_dashboard_model() {
@@ -391,10 +392,17 @@ export function character_viewmodel() {
     async (character_id: string, patch: Partial<DNDCharacter>) => {
       const target_character = character_model.getState().characters[character_id]
       if (!target_character) return
+      const previous_character = target_character
       const optimistic = { ...target_character, ...patch }
       set_character(optimistic)
-      const server_updated = await character_api.update(character_id, optimistic)
-      set_character(server_updated)
+      set_character_update_error(null)
+      try {
+        const server_updated = await character_api.update(character_id, optimistic)
+        set_character(server_updated)
+      } catch (err) {
+        set_character(previous_character)
+        set_character_update_error(err instanceof Error ? err.message : 'Failed to save character')
+      }
     },
     [set_character]
   )
@@ -445,6 +453,7 @@ export function character_viewmodel() {
     create_new_character_for_user,
     delete_character,
     update_character,
+    character_update_error,
     character_sheet_model,
     player_dashboard_model,
     character_card_model

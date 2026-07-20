@@ -36,6 +36,7 @@ export const COMBAT_CONDITIONS: string[] = [
 export function combat_viewmodel() {
   const { initiative_order, last_dice_roll_result, dice_roll_history } = combat_model()
   const [active_turn_index, set_active_turn_index] = useState(0)
+  const [character_update_error, set_character_update_error] = useState<string | null>(null)
   const { send } = websocket_hook()
 
   /** DM: sort and broadcast the initiative order. The order itself is applied locally
@@ -70,16 +71,23 @@ export function combat_viewmodel() {
       if (Number.isNaN(new_current_hp)) return
       const target_character = character_model.getState().characters[character_id]
       if (!target_character) return
+      const previous_character = target_character
       const clamped_hp = Math.max(0, Math.min(target_character.max_hp, new_current_hp))
       const optimistic = { ...target_character, current_hp: clamped_hp }
       character_model.getState().set_character(optimistic)
-      const server_updated = await character_api.update(character_id, optimistic)
-      character_model.getState().set_character(server_updated)
-      send<HPUpdatePayload>('hp_update', {
-        character_id,
-        current_hp: server_updated.current_hp,
-        max_hp: server_updated.max_hp,
-      })
+      set_character_update_error(null)
+      try {
+        const server_updated = await character_api.update(character_id, optimistic)
+        character_model.getState().set_character(server_updated)
+        send<HPUpdatePayload>('hp_update', {
+          character_id,
+          current_hp: server_updated.current_hp,
+          max_hp: server_updated.max_hp,
+        })
+      } catch (err) {
+        character_model.getState().set_character(previous_character)
+        set_character_update_error(err instanceof Error ? err.message : 'Failed to save character')
+      }
     },
     [send]
   )
@@ -90,17 +98,24 @@ export function combat_viewmodel() {
     async (character_id: string, condition: string) => {
       const target_character = character_model.getState().characters[character_id]
       if (!target_character) return
+      const previous_character = target_character
       const updated_conditions = target_character.conditions.includes(condition)
         ? target_character.conditions.filter((existing_condition) => existing_condition !== condition)
         : [...target_character.conditions, condition]
       const optimistic = { ...target_character, conditions: updated_conditions }
       character_model.getState().set_character(optimistic)
-      const server_updated = await character_api.update(character_id, optimistic)
-      character_model.getState().set_character(server_updated)
-      send<ConditionUpdatePayload>('condition_update', {
-        character_id,
-        conditions: server_updated.conditions,
-      })
+      set_character_update_error(null)
+      try {
+        const server_updated = await character_api.update(character_id, optimistic)
+        character_model.getState().set_character(server_updated)
+        send<ConditionUpdatePayload>('condition_update', {
+          character_id,
+          conditions: server_updated.conditions,
+        })
+      } catch (err) {
+        character_model.getState().set_character(previous_character)
+        set_character_update_error(err instanceof Error ? err.message : 'Failed to save character')
+      }
     },
     [send]
   )
@@ -218,6 +233,7 @@ export function combat_viewmodel() {
     roll_dice,
     update_character_hp,
     toggle_character_condition,
+    character_update_error,
     initiative_input_model,
     dice_roller_model,
     dice_roll_history,

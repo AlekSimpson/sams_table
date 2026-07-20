@@ -895,19 +895,18 @@ describe('loading and mutating characters', () => {
       expect(character_model.getState().characters[original_character.id]).toEqual(server_updated_character)
     })
 
-    it('leaves the optimistic patch applied and rejects when the API call fails', async () => {
+    it('rolls back the optimistic patch and sets character_update_error when the API call fails', async () => {
       const original_character = make_character({ name: 'Thorian' })
       character_model.getState().set_character(original_character)
       mock_character_api.update.mockRejectedValue(new Error('save failed'))
       const { result } = renderHook(() => character_viewmodel())
 
-      await expect(
-        act(async () => {
-          await result.current.update_character(original_character.id, { name: 'Thorian the Bold' })
-        })
-      ).rejects.toThrow('save failed')
+      await act(async () => {
+        await result.current.update_character(original_character.id, { name: 'Thorian the Bold' })
+      })
 
-      expect(character_model.getState().characters[original_character.id].name).toBe('Thorian the Bold')
+      expect(character_model.getState().characters[original_character.id].name).toBe('Thorian')
+      expect(result.current.character_update_error).toBe('save failed')
     })
   })
 })

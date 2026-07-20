@@ -148,7 +148,7 @@ function EquipmentTab({
 }
 
 export default function CharacterSheet({ character_id }: CharacterSheetProps) {
-  const { characters, character_sheet_model, load_character } = character_viewmodel()
+  const { characters, character_sheet_model, load_character, character_update_error } = character_viewmodel()
   const [is_dice_roller_open, set_is_dice_roller_open] = useState(false)
 
   useEffect(() => {
@@ -186,6 +186,10 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
 
       {/* ── Main column ── */}
       <div className="cs__main">
+
+        {character_update_error && (
+          <div className="cs__error-banner" role="alert">{character_update_error}</div>
+        )}
 
         {/* Identity strip */}
         <div className="cs__identity">

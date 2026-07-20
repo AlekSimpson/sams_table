@@ -209,19 +209,18 @@ describe('update_character_hp', () => {
     expect(mock_send).not.toHaveBeenCalled()
   })
 
-  it('leaves the optimistic HP applied, rejects, and never broadcasts when the save fails', async () => {
+  it('rolls back the optimistic HP, sets character_update_error, and never broadcasts when the save fails', async () => {
     const character = make_character({ id: 'character-1', current_hp: 20, max_hp: 40 })
     character_model.getState().set_character(character)
     mock_character_api.update.mockRejectedValue(new Error('save failed'))
     const { result } = render_combat_viewmodel()
 
-    await expect(
-      act(async () => {
-        await result.current.update_character_hp('character-1', 15)
-      })
-    ).rejects.toThrow('save failed')
+    await act(async () => {
+      await result.current.update_character_hp('character-1', 15)
+    })
 
-    expect(character_model.getState().characters['character-1'].current_hp).toBe(15)
+    expect(character_model.getState().characters['character-1'].current_hp).toBe(20)
+    expect(result.current.character_update_error).toBe('save failed')
     expect(mock_send).not.toHaveBeenCalled()
   })
 })
@@ -273,19 +272,18 @@ describe('toggle_character_condition', () => {
     expect(mock_send).not.toHaveBeenCalled()
   })
 
-  it('leaves the optimistic condition applied, rejects, and never broadcasts when the save fails', async () => {
+  it('rolls back the optimistic condition, sets character_update_error, and never broadcasts when the save fails', async () => {
     const character = make_character({ id: 'character-1', conditions: [] })
     character_model.getState().set_character(character)
     mock_character_api.update.mockRejectedValue(new Error('save failed'))
     const { result } = render_combat_viewmodel()
 
-    await expect(
-      act(async () => {
-        await result.current.toggle_character_condition('character-1', 'poisoned')
-      })
-    ).rejects.toThrow('save failed')
+    await act(async () => {
+      await result.current.toggle_character_condition('character-1', 'poisoned')
+    })
 
-    expect(character_model.getState().characters['character-1'].conditions).toEqual(['poisoned'])
+    expect(character_model.getState().characters['character-1'].conditions).toEqual([])
+    expect(result.current.character_update_error).toBe('save failed')
     expect(mock_send).not.toHaveBeenCalled()
   })
 })

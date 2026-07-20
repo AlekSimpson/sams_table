@@ -13,6 +13,12 @@
   gap: var(--space-3);
 }
 
+.dm-combat-controls-panel__error {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
 .dm-combat-controls-panel__list {
   display: flex;
   flex-direction: column;
