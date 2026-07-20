@@ -178,6 +178,62 @@ export function character_viewmodel() {
       commit_equipment(next_equipment, previous_equipment)
     }
 
+    // Weapon/Armor/Tool proficiencies and Languages: freeform text, same debounced-commit
+    // pattern as Notes (optimistic per keystroke, saved 500ms after typing stops).
+    const weapon_proficiencies_value_before_edit = useRef<string | null>(null)
+    const weapon_proficiencies_debounce_timeout  = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const armor_proficiencies_value_before_edit  = useRef<string | null>(null)
+    const armor_proficiencies_debounce_timeout   = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const tool_proficiencies_value_before_edit   = useRef<string | null>(null)
+    const tool_proficiencies_debounce_timeout    = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const languages_value_before_edit            = useRef<string | null>(null)
+    const languages_debounce_timeout             = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    const make_proficiency_field_handler = (
+      field_key: 'weapon_proficiencies' | 'armor_proficiencies' | 'tool_proficiencies' | 'languages',
+      value_before_edit: React.MutableRefObject<string | null>,
+      debounce_timeout: React.MutableRefObject<ReturnType<typeof setTimeout> | null>
+    ) => {
+      const commit = async (next_value: string, previous_value: string) => {
+        try {
+          const server_updated = await character_api.update(character.id, { [field_key]: next_value })
+          set_character(server_updated)
+        } catch {
+          set_character({ ...character, [field_key]: previous_value })
+        }
+      }
+
+      return (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const next_value = event.target.value
+        if (value_before_edit.current === null) {
+          value_before_edit.current = character[field_key] ?? ''
+        }
+        set_character({ ...character, [field_key]: next_value })
+
+        if (debounce_timeout.current !== null) {
+          clearTimeout(debounce_timeout.current)
+        }
+        debounce_timeout.current = setTimeout(() => {
+          const previous_value = value_before_edit.current ?? next_value
+          value_before_edit.current = null
+          commit(next_value, previous_value)
+        }, 500)
+      }
+    }
+
+    const on_weapon_proficiencies_change = make_proficiency_field_handler(
+      'weapon_proficiencies', weapon_proficiencies_value_before_edit, weapon_proficiencies_debounce_timeout
+    )
+    const on_armor_proficiencies_change = make_proficiency_field_handler(
+      'armor_proficiencies', armor_proficiencies_value_before_edit, armor_proficiencies_debounce_timeout
+    )
+    const on_tool_proficiencies_change = make_proficiency_field_handler(
+      'tool_proficiencies', tool_proficiencies_value_before_edit, tool_proficiencies_debounce_timeout
+    )
+    const on_languages_change = make_proficiency_field_handler(
+      'languages', languages_value_before_edit, languages_debounce_timeout
+    )
+
     // for loop-rendered inputs
     const on_stat_change = (key: string) => (event: React.ChangeEvent<HTMLInputElement>) => patch_stat(key, parseInt(event.target.value))
     const on_tab_select  = (tab: Tab)                  => () => set_active_tab(tab)
@@ -224,6 +280,10 @@ export function character_viewmodel() {
       on_notes_change,
       on_equipment_add,
       on_equipment_remove,
+      on_weapon_proficiencies_change,
+      on_armor_proficiencies_change,
+      on_tool_proficiencies_change,
+      on_languages_change,
       is_skill_proficient,
       format_skill_modifier,
       bonus,

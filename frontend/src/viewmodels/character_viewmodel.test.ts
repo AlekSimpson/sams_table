@@ -328,6 +328,88 @@ describe('character_sheet_model', () => {
     })
   })
 
+  describe('proficiency fields (weapons/armor/tools/languages)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    const proficiency_fields = [
+      { field_key: 'weapon_proficiencies', handler_name: 'on_weapon_proficiencies_change' },
+      { field_key: 'armor_proficiencies', handler_name: 'on_armor_proficiencies_change' },
+      { field_key: 'tool_proficiencies', handler_name: 'on_tool_proficiencies_change' },
+      { field_key: 'languages', handler_name: 'on_languages_change' },
+    ] as const
+
+    it.each(proficiency_fields)(
+      'updates $field_key optimistically on every keystroke without calling the API',
+      ({ field_key, handler_name }) => {
+        const character = make_character({ [field_key]: 'original' })
+        character_model.getState().set_character(character)
+        const { result } = render_character_sheet(character.id)
+
+        act(() => {
+          result.current[handler_name]({ target: { value: 'original text' } } as React.ChangeEvent<HTMLTextAreaElement>)
+        })
+
+        expect(character_model.getState().characters[character.id][field_key]).toBe('original text')
+        expect(mock_character_api.update).not.toHaveBeenCalled()
+      }
+    )
+
+    it.each(proficiency_fields)(
+      'commits $field_key once, 500ms after the last keystroke, not once per keystroke',
+      async ({ field_key, handler_name }) => {
+        const character = make_character({ [field_key]: 'original' })
+        character_model.getState().set_character(character)
+        mock_character_api.update.mockResolvedValue(make_character({ [field_key]: 'original text' }))
+        const { result } = render_character_sheet(character.id)
+
+        act(() => {
+          result.current[handler_name]({ target: { value: 'original t' } } as React.ChangeEvent<HTMLTextAreaElement>)
+        })
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(100)
+        })
+        act(() => {
+          result.current[handler_name]({ target: { value: 'original text' } } as React.ChangeEvent<HTMLTextAreaElement>)
+        })
+
+        expect(mock_character_api.update).not.toHaveBeenCalled()
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(500)
+        })
+
+        expect(mock_character_api.update).toHaveBeenCalledTimes(1)
+        expect(mock_character_api.update).toHaveBeenCalledWith(character.id, { [field_key]: 'original text' })
+      }
+    )
+
+    it.each(proficiency_fields)(
+      'rolls back $field_key to the value from the start of the edit session on failure',
+      async ({ field_key, handler_name }) => {
+        const character = make_character({ [field_key]: 'original' })
+        character_model.getState().set_character(character)
+        mock_character_api.update.mockRejectedValue(new Error('save failed'))
+        const { result } = render_character_sheet(character.id)
+
+        act(() => {
+          result.current[handler_name]({ target: { value: 'original text' } } as React.ChangeEvent<HTMLTextAreaElement>)
+        })
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(500)
+        })
+
+        expect(character_model.getState().characters[character.id][field_key]).toBe('original')
+      }
+    )
+  })
+
   describe('equipment', () => {
     it('does nothing when adding a blank (whitespace-only) item name', () => {
       const character = make_character({ equipment: ['Longsword'] })

@@ -94,6 +94,10 @@ export const mock_character_api = {
         conditions: [],
         equipment: [],
         notes: '',
+        weapon_proficiencies: '',
+        armor_proficiencies: '',
+        tool_proficiencies: '',
+        languages: '',
         created_at: new Date().toISOString(),
       }
       mock_store.characters.push(character)

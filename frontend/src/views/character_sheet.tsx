@@ -492,19 +492,43 @@ export default function CharacterSheet({ character_id }: CharacterSheetProps) {
           <div className="cs__aside-header"><span>Proficiencies</span><hr /></div>
           <div className="cs__prof-group">
             <span className="cs__prof-label">Weapons</span>
-            <textarea className="cs__prof-textarea" placeholder="Not set" rows={1} />
+            <textarea
+              className="cs__prof-textarea"
+              placeholder="Not set"
+              rows={1}
+              value={character.weapon_proficiencies ?? ''}
+              onChange={model.on_weapon_proficiencies_change}
+            />
           </div>
           <div className="cs__prof-group">
             <span className="cs__prof-label">Armor</span>
-            <textarea className="cs__prof-textarea" placeholder="Not set" rows={1} />
+            <textarea
+              className="cs__prof-textarea"
+              placeholder="Not set"
+              rows={1}
+              value={character.armor_proficiencies ?? ''}
+              onChange={model.on_armor_proficiencies_change}
+            />
           </div>
           <div className="cs__prof-group">
             <span className="cs__prof-label">Tools</span>
-            <textarea className="cs__prof-textarea" placeholder="Not set" rows={1} />
+            <textarea
+              className="cs__prof-textarea"
+              placeholder="Not set"
+              rows={1}
+              value={character.tool_proficiencies ?? ''}
+              onChange={model.on_tool_proficiencies_change}
+            />
           </div>
           <div className="cs__prof-group">
             <span className="cs__prof-label">Languages</span>
-            <textarea className="cs__prof-textarea" placeholder="Not set" rows={1} />
+            <textarea
+              className="cs__prof-textarea"
+              placeholder="Not set"
+              rows={1}
+              value={character.languages ?? ''}
+              onChange={model.on_languages_change}
+            />
           </div>
         </Panel>
 

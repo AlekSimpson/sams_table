@@ -6,6 +6,7 @@ import { test, expect } from '@playwright/test'
 const EQUIPMENT_ITEM_NAME = 'Potion of Healing'
 const EDITED_CURRENT_HP = '7'
 const DICE_NOTATION = '2d6+3'
+const WEAPON_PROFICIENCIES_TEXT = 'Simple weapons, Shortswords'
 
 test('Player can create a character, join a session, edit their sheet, and roll dice', async ({ page, context }) => {
   const page_errors: Error[] = []
@@ -72,7 +73,16 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   await page.getByRole('button', { name: 'Add', exact: true }).click()
   await expect(page.getByText(EQUIPMENT_ITEM_NAME, { exact: true })).toBeVisible()
 
-  // --- Verify both edits actually persisted (not just optimistic local state): switch
+  // --- Edit the Weapons proficiency textarea in the right sidebar (always visible,
+  // regardless of which middle-column tab is active). This field commits debounced,
+  // 500ms after the last keystroke (character_viewmodel.ts), so give it (plus the mock
+  // backend's simulated 150-400ms latency) time to actually save before navigating away. ---
+  const weapon_proficiencies_textarea = page.locator('.cs__prof-group', { hasText: 'Weapons' }).locator('textarea')
+  await weapon_proficiencies_textarea.fill(WEAPON_PROFICIENCIES_TEXT)
+  await expect(weapon_proficiencies_textarea).toHaveValue(WEAPON_PROFICIENCIES_TEXT)
+  await page.waitForTimeout(1000)
+
+  // --- Verify all three edits actually persisted (not just optimistic local state): switch
   // to the Live Map tab (unmounting CharacterSheet) and back (remounting it, which
   // re-fetches the character from the mock backend) ---
   await page.getByRole('button', { name: 'Live Map', exact: true }).click()
@@ -104,6 +114,9 @@ test('Player can create a character, join a session, edit their sheet, and roll 
   await expect(page.getByTitle('Current HP')).toHaveValue(EDITED_CURRENT_HP)
   await page.getByRole('button', { name: 'Equipment', exact: true }).click()
   await expect(page.getByText(EQUIPMENT_ITEM_NAME, { exact: true })).toBeVisible()
+  await expect(page.locator('.cs__prof-group', { hasText: 'Weapons' }).locator('textarea')).toHaveValue(
+    WEAPON_PROFICIENCIES_TEXT
+  )
 
   // --- Use the dice roller to submit a valid roll and verify a result appears ---
   await page.getByRole('button', { name: 'Roll dice', exact: true }).click()

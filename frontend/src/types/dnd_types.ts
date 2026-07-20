@@ -29,6 +29,10 @@ export interface DNDCharacter {
   conditions: string[]
   equipment: string[]
   notes: string
+  weapon_proficiencies?: string
+  armor_proficiencies?: string
+  tool_proficiencies?: string
+  languages?: string
   created_at: string
 }
 

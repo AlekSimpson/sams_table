@@ -37,6 +37,10 @@ const DEMO_CHARACTERS: DNDCharacter[] = [
     conditions: [],
     equipment: ['Longsword', 'Shield', 'Chain Mail', 'Explorer\'s Pack', 'Handaxe (2)'],
     notes: 'Owes a debt to the Ashvale family. Distrustful of magic.',
+    weapon_proficiencies: 'Simple weapons, Martial weapons',
+    armor_proficiencies: 'All armor, Shields',
+    tool_proficiencies: '',
+    languages: 'Common, Orcish',
     created_at: DEMO_CREATED_AT,
   },
   {
@@ -55,6 +59,10 @@ const DEMO_CHARACTERS: DNDCharacter[] = [
     conditions: [],
     equipment: ['Quarterstaff', 'Component Pouch', 'Spellbook', 'Scholar\'s Pack'],
     notes: 'Seeking a lost tome rumored to be hidden beneath the Sunken Spire.',
+    weapon_proficiencies: 'Daggers, Darts, Slings, Quarterstaffs, Light crossbows',
+    armor_proficiencies: '',
+    tool_proficiencies: '',
+    languages: 'Common, Elvish, Draconic',
     created_at: DEMO_CREATED_AT,
   },
   {
@@ -73,6 +81,10 @@ const DEMO_CHARACTERS: DNDCharacter[] = [
     conditions: ['poisoned'],
     equipment: ['Warhammer', 'Shield', 'Scale Mail', 'Holy Symbol', 'Priest\'s Pack'],
     notes: '',
+    weapon_proficiencies: 'Simple weapons',
+    armor_proficiencies: 'Light armor, Medium armor, Shields',
+    tool_proficiencies: '',
+    languages: 'Common, Dwarvish',
     created_at: DEMO_CREATED_AT,
   },
 ]
