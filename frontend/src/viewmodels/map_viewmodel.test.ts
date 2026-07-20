@@ -295,6 +295,18 @@ describe('remove_map_tile', () => {
     expect(result.current.tiles_error).toBeNull()
   })
 
+  it('broadcasts map_tile_removed once persistence succeeds, so other clients drop the tile (see websockets.ts)', async () => {
+    map_model.getState().place_tile(make_tile({ id: 'tile-1' }))
+    mock_map_api.putTiles.mockResolvedValue(undefined)
+    const { result } = render_map_viewmodel()
+
+    await act(async () => {
+      await result.current.remove_map_tile('map-1', 'tile-1')
+    })
+
+    expect(mock_send).toHaveBeenCalledWith('map_tile_removed', { tile_id: 'tile-1' })
+  })
+
   it('keeps the tile removed but sets tiles_error when persisting fails', async () => {
     map_model.getState().place_tile(make_tile({ id: 'tile-1' }))
     mock_map_api.putTiles.mockRejectedValue(new Error('save failed'))
@@ -306,6 +318,7 @@ describe('remove_map_tile', () => {
 
     expect(map_model.getState().tiles).toEqual([])
     expect(result.current.tiles_error).toBe('save failed')
+    expect(mock_send).not.toHaveBeenCalled()
   })
 })
 
