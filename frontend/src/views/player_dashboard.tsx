@@ -68,6 +68,12 @@ export default function PlayerDashboard() {
   const [is_focus_mode, set_is_focus_mode] = useState(
     () => localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
   )
+
+  // Tracks whether the initial load_user_characters fetch has settled, so a direct/
+  // bookmarked/refreshed URL renders a loading state instead of momentarily flashing
+  // "Character not found" while `characters` is still empty. Mirrors the same
+  // has_loaded pattern used in player_view.tsx for the same underlying fetch.
+  const [has_loaded_characters, set_has_loaded_characters] = useState(false)
   const on_focus_mode_toggle_press = () => {
     const next_is_focus_mode = !is_focus_mode
     set_is_focus_mode(next_is_focus_mode)
@@ -82,7 +88,7 @@ export default function PlayerDashboard() {
 
   useEffect(() => {
     if (!user) return
-    load_user_characters(user.id)
+    load_user_characters(user.id).catch(() => {}).then(() => set_has_loaded_characters(true))
   }, [user?.id])
 
   if (!character_id) return null
@@ -96,7 +102,7 @@ export default function PlayerDashboard() {
     create_new_character_for_user(user.id, `New Character ${character_list.length + 1}`)
   }
 
-  if (!character) return <div>Character not found</div>
+  if (!character) return <div>{has_loaded_characters ? 'Character not found' : 'Loading...'}</div>
 
   const on_join_code_key_down = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') join_code.on_submit(character.name)
